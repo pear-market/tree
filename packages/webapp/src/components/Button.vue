@@ -1,0 +1,57 @@
+<template>
+  <div
+    v-on:click="handleClick"
+    :class="`button ${this.loading ? 'loading' : ''} ${this.errored ? 'error' : ''}`"
+  >
+    <div v-show="!this.loading && !this.errored"><slot></slot></div>
+    <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
+    <div v-if="this.errored">{{ errorText || 'There was a problem' }}</div>
+  </div>
+</template>
+
+<script>
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component({
+  name: 'Button',
+  props: ['onClick', 'loadingText', 'errorText'],
+})
+export default class Button extends Vue {
+  loading = false
+  errored = false
+
+  async handleClick(e) {
+    e.preventDefault()
+    if (this.errored) return
+    if (typeof this.onClick !== 'function') {
+      return
+    }
+    try {
+      this.loading = true
+      await this.onClick()
+      this.loading = false
+    } catch (err) {
+      this.loading = false
+      this.errored = true
+      console.log('Uncaught button handler error', err)
+      setTimeout(() => {
+        this.errored = false
+      }, 3000)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.button {
+  background: lightgray;
+  cursor: pointer;
+}
+.button.loading {
+
+}
+.button.error {
+  background: red;
+}
+</style>

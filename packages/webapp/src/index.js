@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import Meta from 'vue-meta'
 import App from './App'
 import Home from './Home'
+import Create from './Create'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -23,6 +24,7 @@ export function createApp(cookie) {
     mode: 'history',
     routes: [
       { path: '/', component: Home },
+      { path: '/create', component: Create },
     ]
   })
   const app = new Vue({
