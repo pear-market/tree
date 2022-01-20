@@ -8,6 +8,7 @@ import Create from './Create'
 import Auth from './Auth'
 import AuthStore from './stores/auth'
 import ConnectionStore from './stores/connection'
+import StorageConnector from './stores/storage'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -24,6 +25,7 @@ export function createApp(cookie) {
     modules: {
       auth: AuthStore,
       connection: ConnectionStore,
+      storage: StorageConnector,
     },
   })
   const router = new VueRouter({

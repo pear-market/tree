@@ -12,7 +12,9 @@ import Component from 'vue-class-component'
   name: 'App',
 })
 export default class App extends Vue {
-  mounted() {
+  async mounted() {
+    await this.$store.dispatch('initDB')
+    await this.$store.dispatch('init')
     if (!this.$store.state.auth.auth) {
       this.$router.push('/auth')
     }
