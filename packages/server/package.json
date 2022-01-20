@@ -18,6 +18,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "especial": "^0.1.0-beta-3"
+    "anondb": "^0.0.6",
+    "especial": "^0.1.0-beta-3",
+    "nanoid": "^3.2.0"
   }
 }

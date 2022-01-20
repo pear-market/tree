@@ -1,10 +1,28 @@
 const especial = require('especial')
+const { DB, SQLiteConnector } = require('anondb/node')
+const schema = require('./schema')
 
-const app = especial()
+async function start() {
+  // init the database
+  const db = await SQLiteConnector.create(schema, 'db.sqlite')
 
-app.handle('utils.ping', (data, send, next) => send('pong'))
+  // then create the server
+  const app = especial()
 
-const port = process.env.PORT || 4000
-const server = app.listen(port, () => {
-  console.log(`Listening on port ${port}`)
-})
+  app.handle('utils.ping', (data, send, next) => send('pong'))
+
+  const port = process.env.PORT || 4000
+  const server = app.listen(port, (err) => {
+    if (err) {
+      console.log(err)
+      process.exit(1)
+    }
+    console.log(`Listening on port ${port}`)
+  })
+}
+
+start()
+  .catch((err) => {
+    console.log('Uncaught error', err)
+    process.exit(1)
+  })
