@@ -5,6 +5,9 @@ import Meta from 'vue-meta'
 import App from './App'
 import Home from './Home'
 import Create from './Create'
+import Auth from './Auth'
+import AuthStore from './stores/auth'
+import ConnectionStore from './stores/connection'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -18,12 +21,16 @@ export function createApp(cookie) {
 
     },
     actions: {},
-    modules: {},
+    modules: {
+      auth: AuthStore,
+      connection: ConnectionStore,
+    },
   })
   const router = new VueRouter({
     mode: 'history',
     routes: [
       { path: '/', component: Home },
+      { path: '/auth', component: Auth },
       { path: '/create', component: Create },
     ]
   })

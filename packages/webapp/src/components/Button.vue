@@ -2,6 +2,8 @@
   <div
     v-on:click="handleClick"
     :class="`button ${this.loading ? 'loading' : ''} ${this.errored ? 'error' : ''}`"
+    tabindex="0"
+    v-on:keyup.enter="handleClick"
   >
     <div v-show="!this.loading && !this.errored"><slot></slot></div>
     <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
@@ -47,6 +49,10 @@ export default class Button extends Vue {
 .button {
   background: lightgray;
   cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+  border: 1px solid black;
+  padding: 8px;
 }
 .button.loading {
 

@@ -10,6 +10,7 @@ async function start() {
   const app = especial()
 
   app.handle('utils.ping', (data, send, next) => send('pong'))
+  require('./handlers/user')(app, db)
 
   const port = process.env.PORT || 4000
   const server = app.listen(port, (err) => {

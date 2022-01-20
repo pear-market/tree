@@ -11,7 +11,13 @@ import Component from 'vue-class-component'
 @Component({
   name: 'App',
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  mounted() {
+    if (!this.$store.state.auth.auth) {
+      this.$router.push('/auth')
+    }
+  }
+}
 </script>
 
 <style>
