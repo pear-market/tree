@@ -1,0 +1,22 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Chance Hudson <jchancehud@gmail.com>",
+  "homepage": "",
+  "license": "GPL-3.0-or-later",
+  "main": "src/server.js",
+  "directories": {
+    "src": "src",
+    "test": "__tests__"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "especial": "^0.1.0-beta-3"
+  }
+}
