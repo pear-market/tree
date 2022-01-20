@@ -14,9 +14,8 @@
     "lib"
   ],
   "scripts": {
-    "start": "NODE_ENV=development node server.js",
+    "start": "webpack-dev-server",
     "build": "webpack --config webpack.prod.js --progress",
-    "dev": "webpack-dev-server",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
