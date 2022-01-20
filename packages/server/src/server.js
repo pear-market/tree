@@ -22,8 +22,7 @@ async function start() {
   })
 }
 
-start()
-  .catch((err) => {
-    console.log('Uncaught error', err)
-    process.exit(1)
-  })
+start().catch((err) => {
+  console.log('Uncaught error', err)
+  process.exit(1)
+})

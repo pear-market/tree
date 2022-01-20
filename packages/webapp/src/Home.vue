@@ -8,9 +8,7 @@
       <div>0 Total Posts</div>
       <div>0 Askers</div>
     </div>
-    <button v-on:click="$router.push('/create')">
-      Create Post
-    </button>
+    <button v-on:click="$router.push('/create')">Create Post</button>
   </div>
 </template>
 

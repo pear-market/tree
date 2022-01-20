@@ -22,7 +22,7 @@ async function userCreate(data, send) {
   const salt = await bcrypt.genSalt(10)
   const passwordHash = await bcrypt.hash(password, salt)
   const userId = nanoid()
-  await db.transaction(_db => {
+  await db.transaction((_db) => {
     _db.create('User', {
       id: userId,
       username,
@@ -37,7 +37,7 @@ async function userCreate(data, send) {
   const auth = await db.create('Auth', {
     userId,
   })
-  const user = await db.findOne('User', { id: userId, })
+  const user = await db.findOne('User', { id: userId })
   send({
     user,
     auth,
@@ -45,11 +45,11 @@ async function userCreate(data, send) {
 }
 
 async function userLogin(data, send) {
-  const { username, password, } = data
+  const { username, password } = data
   const user = await db.findOne('User', {
     where: {
       username,
-    }
+    },
   })
   if (!user) {
     send(`No user found with username "${username}"`, 1)
@@ -58,7 +58,7 @@ async function userLogin(data, send) {
   const passwordData = await db.findOne('UserPassword', {
     where: {
       userId: user.id,
-    }
+    },
   })
   if (!passwordData) {
     send('No password saved for user', 1)

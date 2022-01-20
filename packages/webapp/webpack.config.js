@@ -4,8 +4,7 @@ const path = require('path')
 
 module.exports = merge(common, {
   mode: 'development',
-  plugins: [
-  ],
+  plugins: [],
   devServer: {
     compress: true,
     historyApiFallback: {

@@ -14,8 +14,8 @@ const schema = [
         name: 'createdAt',
         type: 'Int',
       },
-      ['username', 'String', { unique: true, }],
-    ]
+      ['username', 'String', { unique: true }],
+    ],
   },
   {
     name: 'Auth',
@@ -31,8 +31,8 @@ const schema = [
         index: true,
       },
       ['userId', 'String'],
-    ]
-  }
+    ],
+  },
 ]
 
 export default {
@@ -45,6 +45,6 @@ export default {
       const db = await IndexedDBConnector.create(schema, 4)
       console.log(db)
       state.db = db
-    }
-  }
+    },
+  },
 }

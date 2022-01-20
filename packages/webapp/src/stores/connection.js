@@ -21,6 +21,6 @@ export default {
         token,
         ...(data || {}),
       })
-    }
-  }
+    },
+  },
 }

@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; flex-direction: column;">
+  <div style="display: flex; flex-direction: column">
     <div>
       <input type="text" placeholder="username" v-model="username" />
     </div>
@@ -9,16 +9,8 @@
     </div>
     <div spacer style="height: 8px" />
     <div style="display: flex">
-      <Button
-        :onClick="() => createAccount()"
-      >
-        Create Account
-      </Button>
-      <Button
-        :onClick="() => login()"
-      >
-        Login
-      </Button>
+      <Button :onClick="() => createAccount()"> Create Account </Button>
+      <Button :onClick="() => login()"> Login </Button>
     </div>
     <div spacer style="height: 8px" />
   </div>
@@ -30,7 +22,7 @@ import Component from 'vue-class-component'
 import Button from './components/Button'
 @Component({
   name: 'Auth',
-  components: { Button, },
+  components: { Button },
 })
 export default class Auth extends Vue {
   activePane = 1
@@ -51,7 +43,7 @@ export default class Auth extends Vue {
   async login() {
     await this.$store.dispatch('login', {
       username: this.username,
-      password: this.password
+      password: this.password,
     })
     this.$router.push('/')
   }

@@ -6,12 +6,8 @@
     </div>
     <div style="display: flex; flex-direction: column">
       <textarea v-model="postText" />
-      <TextInput
-        v-model="price"
-      />
-      <Button :onClick="click">
-        Test
-      </Button>
+      <TextInput v-model="price" />
+      <Button :onClick="click"> Test </Button>
     </div>
   </div>
 </template>
@@ -24,19 +20,17 @@ import Button from './components/Button'
 
 @Component({
   name: 'Create',
-  components: { TextInput, Button, },
+  components: { TextInput, Button },
   metaInfo: {
     title: 'Create Post',
-  }
+  },
 })
 export default class Create extends Vue {
   postText = ''
   price = ''
-  
-  click() {
-  }
+
+  click() {}
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

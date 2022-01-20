@@ -1,4 +1,4 @@
-const { nanoid }= require('nanoid')
+const { nanoid } = require('nanoid')
 
 module.exports = [
   {
@@ -16,8 +16,8 @@ module.exports = [
         type: 'Int',
         default: () => +new Date(),
       },
-      ['username', 'String', { unique: true, }],
-    ]
+      ['username', 'String', { unique: true }],
+    ],
   },
   {
     name: 'UserPassword',
@@ -31,7 +31,7 @@ module.exports = [
         type: 'Int',
         default: () => +new Date(),
       },
-    ]
+    ],
   },
   {
     name: 'Auth',
@@ -48,6 +48,6 @@ module.exports = [
         default: () => +new Date(),
       },
       ['userId', 'String'],
-    ]
-  }
+    ],
+  },
 ]

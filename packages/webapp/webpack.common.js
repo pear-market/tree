@@ -21,7 +21,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'babel-loader'
+        loader: 'babel-loader',
       },
       {
         test: /\.css$/,
@@ -30,8 +30,8 @@ module.exports = {
           {
             loader: 'css-loader',
             options: { importLoaders: 1 },
-          }
-        ]
+          },
+        ],
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
@@ -39,9 +39,9 @@ module.exports = {
         options: {
           publicPath: 'build',
           esModule: false,
-        }
-      }
-    ]
+        },
+      },
+    ],
   },
   plugins: [
     new VueLoaderPlugin(),
@@ -51,5 +51,5 @@ module.exports = {
       inlineSource: '.(js|css)',
     }),
     // new HtmlWebpackInlineSourcePlugin(),
-  ]
+  ],
 }

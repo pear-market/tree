@@ -15,12 +15,8 @@ export function createApp(cookie) {
   Vue.use(Vuex)
   Vue.use(Meta)
   const store = new Vuex.Store({
-    state: {
-
-    },
-    mutations: {
-
-    },
+    state: {},
+    mutations: {},
     actions: {},
     modules: {
       auth: AuthStore,
@@ -34,12 +30,12 @@ export function createApp(cookie) {
       { path: '/', component: Home },
       { path: '/auth', component: Auth },
       { path: '/create', component: Create },
-    ]
+    ],
   })
   const app = new Vue({
     router,
     store,
-    render: h => h(App),
+    render: (h) => h(App),
   })
   return { app, router, store }
 }

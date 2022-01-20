@@ -19,7 +19,7 @@ import Component from 'vue-class-component'
   model: {
     prop: 'text',
     event: 'textChanged',
-  }
+  },
 })
 export default class TextInput extends Vue {
   textChanged(e) {

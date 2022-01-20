@@ -1,7 +1,9 @@
 <template>
   <div
     v-on:click="handleClick"
-    :class="`button ${this.loading ? 'loading' : ''} ${this.errored ? 'error' : ''}`"
+    :class="`button ${this.loading ? 'loading' : ''} ${
+      this.errored ? 'error' : ''
+    }`"
     tabindex="0"
     v-on:keyup.enter="handleClick"
   >
@@ -55,7 +57,6 @@ export default class Button extends Vue {
   padding: 8px;
 }
 .button.loading {
-
 }
 .button.error {
   background: red;

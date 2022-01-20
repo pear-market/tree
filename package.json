@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "bootstrap": "lerna bootstrap",
+    "lint": "prettier . --write --no-semi --single-quote",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "lerna": "^4.0.0",
+    "prettier": "^2.5.1"
   }
 }
