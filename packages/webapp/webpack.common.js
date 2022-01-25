@@ -12,6 +12,11 @@ module.exports = {
   },
   resolve: {
     extensions: ['*', '.js', '.vue'],
+    fallback: {
+      crypto: require.resolve('crypto-browserify'),
+      buffer: require.resolve('buffer/'),
+      stream: require.resolve('stream-browserify/'),
+    },
   },
   module: {
     rules: [

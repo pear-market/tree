@@ -9,6 +9,8 @@ import Auth from './Auth'
 import AuthStore from './stores/auth'
 import ConnectionStore from './stores/connection'
 import StorageConnector from './stores/storage'
+import BLSStore from './stores/bls'
+import EthStore from './stores/eth'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -19,9 +21,11 @@ export function createApp(cookie) {
     mutations: {},
     actions: {},
     modules: {
+      eth: EthStore,
       auth: AuthStore,
       connection: ConnectionStore,
       storage: StorageConnector,
+      bls: BLSStore,
     },
   })
   const router = new VueRouter({

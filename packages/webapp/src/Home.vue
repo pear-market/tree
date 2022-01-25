@@ -4,6 +4,10 @@
       <div>Home</div>
       <div>Pear Node Manager</div>
     </div>
+    <div v-if="$store.state.bls.signer">
+      BLS Key Management
+      <Button v-if="$store.state.bls.signer"> Upload Public Key </Button>
+    </div>
     <div style="display: flex; flex-direction: column">
       <div>0 Total Posts</div>
       <div>0 Askers</div>
@@ -15,15 +19,24 @@
 <script>
 import Vue from 'vue'
 import Component from 'vue-class-component'
+import { Buffer } from 'buffer/'
 
 @Component({
   name: 'Home',
   components: {},
   metaInfo: {
-    title: 'Hello World',
+    title: 'Pear Tree',
   },
 })
-export default class Home extends Vue {}
+export default class Home extends Vue {
+  publicKey = ''
+  async mounted() {
+    await this.$store.dispatch('createSigner')
+    this.publicKey = this.$store.state.bls.signer.pubkey.join('-')
+    const sig = await this.$store.dispatch('sign', 'test')
+    console.log(sig)
+  }
+}
 </script>
 
 <style scoped>
