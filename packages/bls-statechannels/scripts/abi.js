@@ -9,13 +9,11 @@ const contracts = ['BLSKeyCache']
 fs.mkdirSync(srcPath, { recursive: true })
 
 for (const contract of contracts) {
-  fs.renameSync(
-    path.join(
-      artifactsPath,
-      'contracts',
-      `${contract}.sol`,
-      `${contract}.json`
-    ),
-    path.join(srcPath, `${contract}.json`)
-  )
+  const { abi } = require(path.join(
+    artifactsPath,
+    'contracts',
+    `${contract}.sol`,
+    `${contract}.json`
+  ))
+  fs.writeFileSync(path.join(srcPath, `${contract}.json`), JSON.stringify(abi))
 }
