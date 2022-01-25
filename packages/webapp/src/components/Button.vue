@@ -1,15 +1,17 @@
 <template>
-  <div
-    v-on:click="_onClick"
-    :class="`button ${this.loading ? 'loading' : ''} ${
-      this.errored ? 'error' : ''
-    }`"
-    tabindex="0"
-    v-on:keyup.enter="_onClick"
-  >
-    <div v-show="!this.loading && !this.errored"><slot></slot></div>
-    <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
-    <div v-if="this.errored">{{ errorText || 'There was a problem' }}</div>
+  <div class="outer-container">
+    <div
+      v-on:click="_onClick"
+      :class="`button ${this.loading ? 'loading' : ''} ${
+        this.errored ? 'error' : ''
+      }`"
+      tabindex="0"
+      v-on:keyup.enter="_onClick"
+    >
+      <div v-show="!this.loading && !this.errored"><slot></slot></div>
+      <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
+      <div v-if="this.errored">{{ errorText || 'There was a problem' }}</div>
+    </div>
   </div>
 </template>
 
@@ -60,5 +62,10 @@ export default class Button extends Vue {
 }
 .button.error {
   background: red;
+}
+.outer-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

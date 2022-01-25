@@ -1,11 +1,20 @@
 <template>
-  <div>
+  <div class="container">
     <div class="header">
       <div>Home</div>
       <div>Pear Node Manager</div>
     </div>
-    <div v-if="$store.state.bls.signer">
-      BLS Key Management
+    <div spacer style="height: 20px" />
+    <div
+      v-if="$store.state.bls.signer"
+      style="
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid black;
+      "
+    >
+      <div>BLS Key Management</div>
+      <div spacer style="width: 20px" />
       <Button
         v-if="$store.state.bls.signer && keyIndex === -1"
         :onClick="() => registerPubKey()"
@@ -14,11 +23,13 @@
       </Button>
       <div v-if="keyIndex > 0">Key index: {{ keyIndex }}</div>
     </div>
-    <div style="display: flex; flex-direction: column">
+    <div spacer style="height: 8px" />
+    <div style="display: flex; flex-direction: column; border: 1px solid black">
       <div>0 Total Posts</div>
       <div>0 Askers</div>
     </div>
-    <button v-on:click="$router.push('/create')">Create Post</button>
+    <div spacer style="height: 8px" />
+    <Button v-on:click="$router.push('/create')">Create Post</Button>
   </div>
 </template>
 
@@ -65,5 +76,11 @@ export default class Home extends Vue {
 .header {
   display: flex;
   justify-content: space-between;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  max-width: 800px;
 }
 </style>

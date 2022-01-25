@@ -1,9 +1,7 @@
 <template>
-  <div>
+  <div id="app">
     <div v-if="loading">Loading...</div>
-    <div id="app" v-if="!loading">
-      <router-view />
-    </div>
+    <router-view v-if="!loading" />
   </div>
 </template>
 
