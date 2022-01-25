@@ -1,0 +1,27 @@
+{
+  "name": "@pearmarket/bls-statechannels",
+  "private": true,
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Chance Hudson <jchancehud@gmail.com>",
+  "homepage": "https://github.com/pear-market/tree#readme",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pear-market/tree.git"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "deploy:goerli": "hardhat run scripts/deploy.js --network goerli",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/pear-market/tree/issues"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-waffle": "^2.0.2",
+    "@openzeppelin/contracts": "^3.4.2",
+    "@statechannels/nitro-protocol": "^0.17.3",
+    "hardhat": "^2.8.3"
+  }
+}
