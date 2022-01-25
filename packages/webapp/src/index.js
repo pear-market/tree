@@ -11,6 +11,7 @@ import ConnectionStore from './stores/connection'
 import StorageConnector from './stores/storage'
 import BLSStore from './stores/bls'
 import EthStore from './stores/eth'
+import ContractStore from './stores/contract'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -26,6 +27,7 @@ export function createApp(cookie) {
       connection: ConnectionStore,
       storage: StorageConnector,
       bls: BLSStore,
+      contract: ContractStore,
     },
   })
   const router = new VueRouter({

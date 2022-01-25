@@ -56,7 +56,7 @@ export default {
         message: {
           info: 'Unlock BLS',
           warning:
-            'This signature is your private key, only sign on official Pear Market websites!',
+            'This signature is your key, only sign on official Pear Market websites!',
         },
         primaryType: 'PearKey',
         types: {

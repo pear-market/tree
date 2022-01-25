@@ -1,11 +1,11 @@
 <template>
   <div
-    v-on:click="handleClick"
+    v-on:click="_onClick"
     :class="`button ${this.loading ? 'loading' : ''} ${
       this.errored ? 'error' : ''
     }`"
     tabindex="0"
-    v-on:keyup.enter="handleClick"
+    v-on:keyup.enter="_onClick"
   >
     <div v-show="!this.loading && !this.errored"><slot></slot></div>
     <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
@@ -25,7 +25,7 @@ export default class Button extends Vue {
   loading = false
   errored = false
 
-  async handleClick(e) {
+  async _onClick(e) {
     e.preventDefault()
     if (this.errored) return
     if (typeof this.onClick !== 'function') {
