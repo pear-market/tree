@@ -2,9 +2,16 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 interface IBLSMove {
+
   struct Signature {
     uint sig1;
     uint sig2;
+  }
+
+  struct MultiSignature {
+    Signature sig;
+    uint48[] pubKeys;
+    uint[2][] messages;
   }
 
   struct FixedPart {
@@ -75,8 +82,8 @@ interface IBLSMove {
     bytes32 appPartHash,
     bytes32 outcomeHash,
     uint8 numStates,
-    uint8[] calldata whoSignedWhat,
-    Signature[] calldata sigs
+    uint8[] memory whoSignedWhat,
+    MultiSignature calldata sigs
   ) external;
 
   // Conclude many channels where all participants have agreed
