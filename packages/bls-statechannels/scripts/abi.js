@@ -4,7 +4,7 @@ const path = require('path')
 const artifactsPath = path.join(__dirname, '../artifacts')
 const srcPath = path.join(__dirname, '../src/abi')
 
-const contracts = ['BLSKeyCache']
+const contracts = ['BLSKeyCache', 'BLSMove']
 
 fs.mkdirSync(srcPath, { recursive: true })
 

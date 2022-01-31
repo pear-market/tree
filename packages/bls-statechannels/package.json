@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "hardhat compile",
+    "abi": "node scripts/abi",
     "deploy:goerli": "hardhat run scripts/deploy.js --network goerli",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },

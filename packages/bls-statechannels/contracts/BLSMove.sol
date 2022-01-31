@@ -7,7 +7,7 @@ import "./BLSKeyCache.sol";
 import "./StatusManager.sol";
 import { BLSOpen } from "./BLS.sol";
 
-contract StateChannel is BLSKeyCache, StatusManager {
+contract BLSMove is BLSKeyCache, StatusManager {
 
   address immutable appDefinition;
   uint48 immutable challengeDuration;
