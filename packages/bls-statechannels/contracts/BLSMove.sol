@@ -7,7 +7,7 @@ import "./BLSKeyCache.sol";
 import "./StatusManager.sol";
 import { BLSOpen } from "./BLS.sol";
 
-contract BLSMove is BLSKeyCache, StatusManager {
+contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
 
   address immutable appDefinition;
   uint48 immutable challengeDuration;
@@ -25,23 +25,23 @@ contract BLSMove is BLSKeyCache, StatusManager {
     IBLSMove.Signature[] calldata sigs,
     uint8[] calldata whoSignedWhat,
     IBLSMove.Signature calldata challengerSig
-  ) external {}
+  ) external override {}
 
   function respond(
     bool[2] calldata isFinalAB,
     IBLSMove.MinFixedPart calldata fixedPart,
     IBLSMove.VariablePart[2] calldata variablePartAB,
     IBLSMove.Signature calldata sig
-  ) external {}
+  ) external override {}
 
   function checkpoint(
-    IBLSMove.MinFixedPart calldata fixedPart,
+    IBLSMove.FixedPart calldata fixedPart,
     uint48 largestTurnNum,
     IBLSMove.VariablePart[] calldata variableParts,
     uint8 isFinalCount,
     uint8[] calldata whoSignedWhat,
     IBLSMove.MultiSignature calldata sigs
-  ) external {
+  ) external override {
     _checkpoint(
       fixedPart,
       largestTurnNum,
@@ -53,7 +53,7 @@ contract BLSMove is BLSKeyCache, StatusManager {
   }
 
   function _checkpoint(
-    IBLSMove.MinFixedPart calldata fixedPart,
+    IBLSMove.FixedPart calldata fixedPart,
     uint48 largestTurnNum,
     IBLSMove.VariablePart[] calldata variableParts,
     uint8 isFinalCount,
@@ -68,6 +68,18 @@ contract BLSMove is BLSKeyCache, StatusManager {
     bytes32 channelId = _getChannelId(fixedPart.participants, fixedPart.nonce);
     _requireChannelNotFinalized(channelId);
     _requireIncreasedTurnNumber(channelId, largestTurnNum);
+
+    _requireStateSupportedBy(
+      largestTurnNum,
+      variableParts,
+      isFinalCount,
+      channelId,
+      fixedPart,
+      sigs,
+      whoSignedWhat
+    );
+
+    _clearChallenge(channelId, largestTurnNum);
   }
 
 
@@ -82,7 +94,7 @@ contract BLSMove is BLSKeyCache, StatusManager {
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
     IBLSMove.Signature calldata sigs // supply a single sig for all
-  ) external {
+  ) external override {
     _multiConclude(
       fixedParts,
       appPartHash,
@@ -108,7 +120,7 @@ contract BLSMove is BLSKeyCache, StatusManager {
     uint8 numStates,
     uint8[] memory whoSignedWhat,
     IBLSMove.MultiSignature calldata sigs
-  ) external {
+  ) external override {
     _conclude(
       largestTurnNum,
       fixedPart,
@@ -169,7 +181,7 @@ contract BLSMove is BLSKeyCache, StatusManager {
     statusOf[channelId] = _generateStatus(
       ChannelData(0, uint48(block.timestamp), bytes32(0), outcomeHash)
     );
-    // emit Concluded(channelId, uint48(block.timestamp));
+    emit Concluded(channelId, uint48(block.timestamp));
   }
 
   function _requireStateSupportedBy(
@@ -427,6 +439,19 @@ contract BLSMove is BLSKeyCache, StatusManager {
         )
       )
     );
+  }
+
+  /**
+   * @notice Clears a challenge by updating the turnNumRecord and resetting the remaining channel storage fields, and emits a ChallengeCleared event.
+   * @dev Clears a challenge by updating the turnNumRecord and resetting the remaining channel storage fields, and emits a ChallengeCleared event.
+   * @param channelId Unique identifier for a channel.
+   * @param newTurnNumRecord New turnNumRecord to overwrite existing value
+   */
+  function _clearChallenge(bytes32 channelId, uint48 newTurnNumRecord) internal {
+    statusOf[channelId] = _generateStatus(
+      ChannelData(newTurnNumRecord, 0, bytes32(0), bytes32(0))
+    );
+    emit ChallengeCleared(channelId, newTurnNumRecord);
   }
 
   function getChainID() public pure returns (uint256) {

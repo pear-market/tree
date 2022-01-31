@@ -68,7 +68,7 @@ interface IBLSMove {
   ) external;
 
   function checkpoint(
-    MinFixedPart calldata fixedPart,
+    FixedPart calldata fixedPart,
     uint48 largestTurnNum,
     VariablePart[] calldata variableParts,
     uint8 isFinalCount,
@@ -94,4 +94,40 @@ interface IBLSMove {
     bytes32[] calldata outcomeHash,
     IBLSMove.Signature calldata sigs // supply a single sig for all
   ) external;
+
+  /**
+   * @dev Indicates that a challenge has been registered against `channelId`.
+   * @param channelId Unique identifier for a state channel.
+   * @param turnNumRecord A turnNum that (the adjudicator knows) is supported by a signature from each participant.
+   * @param finalizesAt The unix timestamp when `channelId` will finalize.
+   * @param isFinal Boolean denoting whether the challenge state is final.
+   * @param fixedPart Data describing properties of the state channel that do not change with state updates.
+   * @param variableParts An ordered array of structs, each decribing the properties of the state channel that may change with each state update.
+   * @param sigs A list of Signatures that supported the challenge: one for each participant, in participant order (e.g. [sig of participant[0], sig of participant[1], ...]).
+   * @param whoSignedWhat Indexing information to identify which signature was by which participant
+   */
+  event ChallengeRegistered(
+    bytes32 indexed channelId,
+    uint48 turnNumRecord,
+    uint48 finalizesAt,
+    bool isFinal,
+    FixedPart fixedPart,
+    VariablePart[] variableParts,
+    Signature[] sigs,
+    uint8[] whoSignedWhat
+  );
+
+  /**
+   * @dev Indicates that a challenge, previously registered against `channelId`, has been cleared.
+   * @param channelId Unique identifier for a state channel.
+   * @param newTurnNumRecord A turnNum that (the adjudicator knows) is supported by a signature from each participant.
+   */
+  event ChallengeCleared(bytes32 indexed channelId, uint48 newTurnNumRecord);
+
+  /**
+   * @dev Indicates that a challenge has been registered against `channelId`.
+   * @param channelId Unique identifier for a state channel.
+   * @param finalizesAt The unix timestamp when `channelId` finalized.
+   */
+  event Concluded(bytes32 indexed channelId, uint48 finalizesAt);
 }
