@@ -9,7 +9,7 @@ interface IBLSMove {
   }
 
   struct MultiSignature {
-    Signature sig;
+    uint[2] sig;
     uint48[] pubKeys;
     uint[2][] messages;
   }

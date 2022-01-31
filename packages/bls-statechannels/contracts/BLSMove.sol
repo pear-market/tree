@@ -11,10 +11,12 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
 
   address immutable appDefinition;
   uint48 immutable challengeDuration;
+  bytes32 immutable domain;
 
-  constructor(address _appDefintion, uint48 _challengeDuration) {
+  constructor(address _appDefintion, uint48 _challengeDuration, bytes32 _domain) {
     appDefinition = _appDefintion;
     challengeDuration = _challengeDuration;
+    domain = _domain;
   }
 
   function challenge(
@@ -351,8 +353,8 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     // the whoSignedWhat array
     for (uint8 i = 0; i < whoSignedWhat.length; i++) {
       uint[2] memory message = BLSOpen.hashToPoint(
-        bytes32(0), // TODO: set domain
-        abi.encodePacked(stateHashes[whoSignedWhat[i]])
+        domain,
+        bytes32ToBytes(stateHashes[whoSignedWhat[i]])
       );
       require(
         message[0] == sigs.messages[i][0] &&
@@ -361,14 +363,18 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
       );
     }
     // verify BLS multisig
-    uint[2] memory sigArr;
-    sigArr[0] = sigs.sig.sig1;
-    sigArr[1] = sigs.sig.sig2;
     return BLSOpen.verifyMultiple(
-      sigArr,
+      sigs.sig,
       pubkeys,
       sigs.messages
     );
+  }
+
+  function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory) {
+    assembly {
+      mstore(0x0, input)
+      return(0x0, 32)
+    }
   }
 
   function _acceptableWhoSignedWhat(
@@ -393,7 +399,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     uint numParticipants,
     uint numStates,
     uint numSigs
-  ) public view returns (bool) {
+  ) public pure returns (bool) {
       require((numParticipants >= numStates) && (numStates > 0), 'Insufficient or excess states');
       require(
         (numSigs == numParticipants), // && (numWhoSignedWhats == numParticipants),
