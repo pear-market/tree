@@ -2,11 +2,20 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import { IBLSMove } from "./interfaces/IBLSMove.sol";
+import { IBLSMoveApp } from "./interfaces/IBLSMoveApp.sol";
 import "./BLSKeyCache.sol";
 import "./StatusManager.sol";
 import { BLSOpen } from "./BLS.sol";
 
 contract StateChannel is BLSKeyCache, StatusManager {
+
+  address immutable appDefinition;
+  uint48 immutable challengeDuration;
+
+  constructor(address _appDefintion, uint48 _challengeDuration) {
+    appDefinition = _appDefintion;
+    challengeDuration = _challengeDuration;
+  }
 
   function challenge(
     IBLSMove.MinFixedPart calldata fixedPart,
@@ -30,24 +39,66 @@ contract StateChannel is BLSKeyCache, StatusManager {
     uint48 largestTurnNum,
     IBLSMove.VariablePart[] calldata variableParts,
     uint8 isFinalCount,
-    IBLSMove.Signature[] calldata sigs,
-    uint8[] calldata whoSignedWhat
-  ) external {}
+    uint8[] calldata whoSignedWhat,
+    IBLSMove.MultiSignature calldata sigs
+  ) external {
+    _checkpoint(
+      fixedPart,
+      largestTurnNum,
+      variableParts,
+      isFinalCount,
+      whoSignedWhat,
+      sigs
+    );
+  }
 
-  // Conclude many channels where all participants have agreed
-  // go through each channel and make sure that its participants are included in the IBLSMove.Signature
-  function multiConclude(
-    uint48 largestTurnNum, // for all channels
-    IBLSMove.MinFixedPart[] calldata fixedParts,
-    bytes32 appPartHash, // the app data hash should be the same
-    bytes32[] calldata outcomeHash,
-    uint8 numStates, // for all channels
-    uint8[] calldata whoSignedWhat, // for all
-    IBLSMove.Signature calldata sigs // supply a single sig for all
-  ) external {}
+  function _checkpoint(
+    IBLSMove.MinFixedPart calldata fixedPart,
+    uint48 largestTurnNum,
+    IBLSMove.VariablePart[] calldata variableParts,
+    uint8 isFinalCount,
+    uint8[] calldata whoSignedWhat,
+    IBLSMove.MultiSignature calldata sigs
+  ) internal {
+    requireValidInput(
+      fixedPart.participants.length,
+      variableParts.length,
+      sigs.messages.length
+    );
+    bytes32 channelId = _getChannelId(fixedPart.participants, fixedPart.nonce);
+    _requireChannelNotFinalized(channelId);
+    _requireIncreasedTurnNumber(channelId, largestTurnNum);
+  }
+
 
   // In a multiConclude function we will assume that whoSignedWhat is [0, 0]
   // e.g. all participants sign one state, and only one state is provided
+  // Conclude many channels where all participants have agreed
+  // go through each channel and make sure that its participants are included in the IBLSMove.Signature
+  // the appPartHash should be common for all channels. Applications should explicitly nullify this value
+  // the largestTurnNum should be the same for all channels, something like type(uint48).max
+  function multiConclude(
+    IBLSMove.MinFixedPart[] calldata fixedParts,
+    bytes32 appPartHash, // the app data hash should be the same
+    bytes32[] calldata outcomeHash,
+    IBLSMove.Signature calldata sigs // supply a single sig for all
+  ) external {
+    _multiConclude(
+      fixedParts,
+      appPartHash,
+      outcomeHash,
+      sigs
+    );
+  }
+
+  function _multiConclude(
+    IBLSMove.MinFixedPart[] calldata fixedParts,
+    bytes32 appPartHash, // the app data hash should be the same
+    bytes32[] calldata outcomeHash,
+    IBLSMove.Signature calldata sigs // supply a single sig for all
+  ) internal {
+    // TODO
+  }
 
   function conclude(
     uint48 largestTurnNum,
@@ -119,6 +170,130 @@ contract StateChannel is BLSKeyCache, StatusManager {
       ChannelData(0, uint48(block.timestamp), bytes32(0), outcomeHash)
     );
     // emit Concluded(channelId, uint48(block.timestamp));
+  }
+
+  function _requireStateSupportedBy(
+    uint48 largestTurnNum,
+    IBLSMove.VariablePart[] memory variableParts,
+    uint8 isFinalCount,
+    bytes32 channelId,
+    IBLSMove.FixedPart memory fixedPart,
+    IBLSMove.MultiSignature memory sigs,
+    uint8[] memory whoSignedWhat
+  ) internal view returns (bytes32) {
+    bytes32[] memory stateHashes = _requireValidTransitionChain(
+      largestTurnNum,
+      variableParts,
+      isFinalCount,
+      channelId,
+      fixedPart
+    );
+    require(
+      _validSignatures(
+        largestTurnNum,
+        fixedPart.participants,
+        stateHashes,
+        sigs,
+        whoSignedWhat
+      ),
+      'Invalid signature'
+    );
+    return stateHashes[stateHashes.length - 1];
+  }
+
+  function _requireValidTransitionChain(
+    uint48 largestTurnNum,
+    IBLSMove.VariablePart[] memory variableParts,
+    uint8 isFinalCount,
+    bytes32 channelId,
+    IBLSMove.FixedPart memory fixedPart
+  ) internal view returns (bytes32[] memory) {
+    bytes32[] memory stateHashes = new bytes32[](variableParts.length);
+    uint48 firstFinalTurnNum = largestTurnNum - isFinalCount + 1;
+    uint48 turnNum;
+
+    for (uint48 i = 0; i < variableParts.length; i++) {
+      turnNum = largestTurnNum - uint48(variableParts.length) + 1 + i;
+      stateHashes[i] = _hashState(
+        turnNum,
+        turnNum >= firstFinalTurnNum,
+        channelId,
+        variableParts[i].appData,
+        keccak256(variableParts[i].outcome)
+      );
+      if (turnNum < largestTurnNum) {
+        // _requireValidTransition
+        _requireValidTransition(
+          fixedPart.participants.length,
+          [turnNum >= firstFinalTurnNum, turnNum + 1 >= firstFinalTurnNum],
+          [variableParts[i], variableParts[i+1]],
+          turnNum + 1
+        );
+      }
+    }
+    return stateHashes;
+  }
+
+  function _requireValidTransition(
+    uint nParticipants,
+    bool[2] memory isFinalAB,
+    IBLSMove.VariablePart[2] memory ab,
+    uint48 turnNumB
+  ) internal view returns (bool) {
+    IsValidTransition isValidProtocolTransition = _requireValidProtocolTransition(
+      nParticipants,
+      isFinalAB, // [a.isFinal, b.isFinal]
+      ab, // [a,b]
+      turnNumB
+    );
+
+    if (isValidProtocolTransition == IsValidTransition.NeedToCheckApp) {
+      require(
+        IBLSMoveApp(appDefinition).validTransition(ab[0], ab[1], turnNumB, nParticipants),
+        'Invalid ForceMoveApp Transition'
+      );
+    }
+    return true;
+  }
+
+  enum IsValidTransition {True, NeedToCheckApp}
+
+  /**
+  * @notice Check that the submitted pair of states form a valid transition
+  * @dev Check that the submitted pair of states form a valid transition
+  * @param nParticipants Number of participants in the channel.
+  transition
+  * @param isFinalAB Pair of booleans denoting whether the first and second state (resp.) are final.
+  * @param ab Variable parts of each of the pair of states
+  * @param turnNumB turnNum of the later state of the pair
+  * @return true if the later state is a validTransition from its predecessor, false otherwise.
+  */
+  function _requireValidProtocolTransition(
+    uint256 nParticipants,
+    bool[2] memory isFinalAB, // [a.isFinal, b.isFinal]
+    IBLSMove.VariablePart[2] memory ab, // [a,b]
+    uint48 turnNumB
+  ) internal pure returns (IsValidTransition) {
+    // a separate check on the signatures for the submitted states implies that the following fields are equal for a and b:
+    // chainId, participants, channelNonce, appDefinition, challengeDuration
+    // and that the b.turnNum = a.turnNum + 1
+    if (isFinalAB[1]) {
+      require(_bytesEqual(ab[1].outcome, ab[0].outcome), 'Outcome change verboten');
+    } else {
+      require(!isFinalAB[0], 'isFinal retrograde');
+      if (turnNumB < 2 * nParticipants) {
+        require(_bytesEqual(ab[1].outcome, ab[0].outcome), 'Outcome change forbidden');
+        require(_bytesEqual(ab[1].appData, ab[0].appData), 'appData change forbidden');
+      } else {
+        return IsValidTransition.NeedToCheckApp;
+      }
+    }
+    return IsValidTransition.True;
+  }
+
+  function _requireIncreasedTurnNumber(bytes32 channelId, uint48 newTurnNum) internal view {
+    (uint48 turnNum, , ) = _unpackStatus(channelId);
+    require(newTurnNum > turnNum, 'turnNum not increased');
   }
 
   function _requireChannelNotFinalized(bytes32 channelId) public view {
@@ -193,7 +368,7 @@ contract StateChannel is BLSKeyCache, StatusManager {
     require(whoSignedWhat.length == nParticipants, '|whoSignedWhat|!=nParticipants');
     for (uint256 i = 0; i < nParticipants; i++) {
       uint256 offset = (nParticipants + largestTurnNum - i) % nParticipants;
-      // offset is the difference between the index of participant[i] and the index of the participant who owns the largesTurnNum state
+      // offset is the difference between the index of participant[i] and the index of the participant who owns the largestTurnNum state
       // the additional nParticipants in the dividend ensures offset always positive
       if (whoSignedWhat[i] + offset + 1 < nStates) {
         return false;
@@ -218,6 +393,42 @@ contract StateChannel is BLSKeyCache, StatusManager {
       return true;
   }
 
+  /**
+   * @notice Computes the hash of the state corresponding to the input data.
+   * @dev Computes the hash of the state corresponding to the input data.
+   * @param turnNum Turn number
+   * @param isFinal Is the state final?
+   * @param channelId Unique identifier for the channel
+   * @param appData Application specific date
+   * @param outcomeHash Hash of the outcome.
+   * @return The stateHash
+   */
+  function _hashState(
+    uint48 turnNum,
+    bool isFinal,
+    bytes32 channelId,
+    bytes memory appData,
+    bytes32 outcomeHash
+  ) internal view returns (bytes32) {
+    return keccak256(
+      abi.encode(
+        IBLSMove.State(
+          turnNum,
+          isFinal,
+          channelId,
+          keccak256(
+            abi.encode(
+              challengeDuration,
+              appDefinition,
+              appData
+            )
+          ),
+          outcomeHash
+        )
+      )
+    );
+  }
+
   function getChainID() public pure returns (uint256) {
     uint256 id;
     /* solhint-disable no-inline-assembly */
@@ -239,4 +450,56 @@ contract StateChannel is BLSKeyCache, StatusManager {
     );
   }
 
+  /**
+   * @notice Check for equality of two byte strings
+   * @dev Check for equality of two byte strings
+   * @param _preBytes One bytes string
+   * @param _postBytes The other bytes string
+   * @return true if the bytes are identical, false otherwise.
+   */
+  function _bytesEqual(bytes memory _preBytes, bytes memory _postBytes) internal pure returns (bool) {
+    // copied from https://www.npmjs.com/package/solidity-bytes-utils/v/0.1.1
+    bool success = true;
+
+    /* solhint-disable no-inline-assembly */
+    assembly {
+      let length := mload(_preBytes)
+
+      // if lengths don't match the arrays are not equal
+      switch eq(length, mload(_postBytes))
+        case 1 {
+          // cb is a circuit breaker in the for loop since there's
+          //  no said feature for inline assembly loops
+          // cb = 1 - don't breaker
+          // cb = 0 - break
+          let cb := 1
+
+          let mc := add(_preBytes, 0x20)
+          let end := add(mc, length)
+
+          for {
+            let cc := add(_postBytes, 0x20)
+            // the next line is the loop condition:
+            // while(uint256(mc < end) + cb == 2)
+          } eq(add(lt(mc, end), cb), 2) {
+            mc := add(mc, 0x20)
+            cc := add(cc, 0x20)
+          } {
+            // if any of these checks fails then arrays are not equal
+            if iszero(eq(mload(mc), mload(cc))) {
+              // unsuccess:
+              success := 0
+              cb := 0
+            }
+          }
+        }
+        default {
+          // unsuccess:
+          success := 0
+        }
+    }
+    /* solhint-disable no-inline-assembly */
+
+    return success;
+  }
 }

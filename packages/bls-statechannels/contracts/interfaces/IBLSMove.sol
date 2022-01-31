@@ -72,8 +72,8 @@ interface IBLSMove {
     uint48 largestTurnNum,
     VariablePart[] calldata variableParts,
     uint8 isFinalCount,
-    Signature[] calldata sigs,
-    uint8[] calldata whoSignedWhat
+    uint8[] calldata whoSignedWhat,
+    MultiSignature calldata sigs
   ) external;
 
   function conclude(
@@ -89,12 +89,9 @@ interface IBLSMove {
   // Conclude many channels where all participants have agreed
   // go through each channel and make sure that its participants are included in the Signature
   function multiConclude(
-    uint48 largestTurnNum, // for all channels
-    MinFixedPart[] calldata fixedParts,
+    IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
-    uint8 numStates, // for all channels
-    uint8[] calldata whoSignedWhat, // for all
-    Signature calldata sigs // supply a single sig for all
+    IBLSMove.Signature calldata sigs // supply a single sig for all
   ) external;
 }
