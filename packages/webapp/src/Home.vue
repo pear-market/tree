@@ -29,7 +29,21 @@
       <div>0 Askers</div>
     </div>
     <div spacer style="height: 8px" />
-    <Button v-on:click="$router.push('/create')">Create Post</Button>
+    <Button :onClick="() => $router.push('/create')">Create Post</Button>
+    <div spacer style="height: 8px" />
+    <div class="post-cell" v-for="post of $store.state.post.postFeed">
+      <div style="display: flex; justify-content: space-between">
+        <div style="font-size: 18px; font-weight: bold">{{ post.title }}</div>
+        <div>10 seconds ago</div>
+      </div>
+      <div>
+        {{ post.fullText }}
+      </div>
+      <div spacer style="height: 8px" />
+      <Button>
+        View Post (1000 Gwei)
+      </Button>
+    </div>
   </div>
 </template>
 
@@ -57,6 +71,7 @@ export default class Home extends Vue {
       this.$store.state.bls.signer.pubkey
     )
     const sig = await this.$store.dispatch('sign', 'test')
+    await this.$store.dispatch('loadPostFeed')
   }
 
   async registerPubKey() {
@@ -82,5 +97,10 @@ export default class Home extends Vue {
   flex-direction: column;
   margin: auto;
   max-width: 800px;
+}
+.post-cell {
+  border: 1px solid black;
+  padding: 4px;
+  margin: 2px 0px;
 }
 </style>

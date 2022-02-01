@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@pearmarket/server",
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "Chance Hudson <jchancehud@gmail.com>",
@@ -21,6 +21,7 @@
     "anondb": "^0.0.6",
     "bcryptjs": "^2.4.3",
     "especial": "^0.1.0-beta-3",
+    "ethers": "^5.5.3",
     "nanoid": "^3.2.0",
     "not-index": "^1.1.0"
   }

@@ -1,8 +1,10 @@
 import { ethers } from 'ethers'
-import BLSKeyCache from '@pearmarket/bls-statechannels/src/abi/BLSKeyCache.json'
+import {
+  BLSMoveAddress,
+  BLSMoveABI,
+} from '@pearmarket/bls-statechannels'
 
 const GETH_URL = 'ws://192.168.1.198:9546'
-const KEY_CACHE_ADDRESS = '0xff7184b579ccB9843a8Fe4372bc1096aC70aC15e'
 
 export default {
   state: {
@@ -13,8 +15,8 @@ export default {
     init: async ({ state }) => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       state.pubKeyCache = new ethers.Contract(
-        KEY_CACHE_ADDRESS,
-        BLSKeyCache,
+        BLSMoveAddress,
+        BLSMoveABI,
         provider.getSigner()
       )
     },

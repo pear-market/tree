@@ -50,4 +50,26 @@ module.exports = [
       ['userId', 'String'],
     ],
   },
+  {
+    name: 'Post',
+    primaryKey: 'id',
+    rows: [
+      {
+        name: 'id',
+        unique: true,
+        type: 'String',
+        default: () => nanoid(),
+      },
+      ['title', 'String'],
+      {
+        name: 'createdAt',
+        type: 'Int',
+        default: () => +new Date(),
+      },
+      ['ownerId', 'String'],
+      ['preview', 'String', { optional: true }],
+      ['fullText', 'String'],
+      ['price', 'String'],
+    ],
+  },
 ]

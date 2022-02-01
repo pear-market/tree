@@ -7,7 +7,7 @@ const auth = (db) => async (data, send, next) => {
   const auth = await db.findOne('Auth', {
     where: {
       token: data.token,
-    }
+    },
   })
   if (!auth) {
     send('Invalid auth token provided', 1)

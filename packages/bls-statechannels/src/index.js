@@ -7,9 +7,9 @@ const { DOMAIN } = require('./domain')
 const { Buffer } = require('buffer/')
 
 module.exports = {
-  BLSMove: require('./address'),
+  BLSMoveAddress: require('./address').BLSMove,
   BLSMoveABI: require('./abi/BLSMove.json'),
-  BLSKeyCache: require('./abi/BLSKeyCache.json'),
+  BLSKeyCacheABI: require('./abi/BLSKeyCache.json'),
   DOMAIN,
   randomSigner,
   getChannelId,

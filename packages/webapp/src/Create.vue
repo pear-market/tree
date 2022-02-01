@@ -5,9 +5,11 @@
       <div>Pear Node Manager</div>
     </div>
     <div style="display: flex; flex-direction: column">
+      <TextInput v-model="title" />
       <textarea v-model="postText" />
       <TextInput v-model="price" />
-      <Button :onClick="click"> Test </Button>
+      <Button :onClick="() => click()">Post</Button>
+      <Button :onClick="() => $router.push('/')">Cancel</Button>
     </div>
   </div>
 </template>
@@ -26,10 +28,18 @@ import Button from './components/Button'
   },
 })
 export default class Create extends Vue {
+  title = ''
   postText = ''
   price = ''
 
-  click() {}
+  async click() {
+    await this.$store.dispatch('createPost', {
+      title: this.title,
+      fullText: this.postText,
+      price: this.price,
+    })
+    this.$router.push('/')
+  }
 }
 </script>
 

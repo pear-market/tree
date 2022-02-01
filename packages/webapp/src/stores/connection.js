@@ -7,6 +7,9 @@ export default {
   },
   mutations: {},
   actions: {
+    init: async ({ dispatch }) => {
+      await dispatch('connect')
+    },
     connect: async ({ state }) => {
       if (state.client) return
       const client = new especial(state.url)
