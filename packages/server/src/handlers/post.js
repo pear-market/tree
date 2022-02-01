@@ -1,15 +1,15 @@
 const { auth } = require('../middleware/auth')
 
-let db
-module.exports = (app, _db) => {
-  db = _db
-  app.handle('post.create', auth(db), createPost)
+const vars = {}
+module.exports = (app, _vars) => {
+  Object.assign(vars, _vars)
+  app.handle('post.create', auth(vars.db), createPost)
   app.handle('post.loadFeed', loadPosts)
 }
 
 async function createPost(data, send) {
   const { auth } = data
-  const post = await db.create('Post', {
+  const post = await vars.db.create('Post', {
     title: data.title,
     preview: data.preview,
     fullText: data.fullText,
@@ -20,7 +20,7 @@ async function createPost(data, send) {
 }
 
 async function loadPosts(data, send) {
-  const posts = await db.findMany('Post', {
+  const posts = await vars.db.findMany('Post', {
     where: {},
     orderBy: {
       createdAt: 'desc',

@@ -17,5 +17,9 @@ export default {
       if (typeof data !== 'string') throw new Error('Expected string')
       return state.signer.sign(`0x${Buffer.from(data).toString('hex')}`)
     },
+    signHex: async ({ state }, data) => {
+      if (typeof data !== 'string') throw new Error('Expected string')
+      return state.signer.sign(`0x${data.replace('0x', '')}`)
+    }
   },
 }

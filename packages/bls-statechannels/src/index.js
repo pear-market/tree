@@ -21,6 +21,22 @@ module.exports = {
   hashAppPart,
   hashOutcome,
   signerFromSecret,
+  serializeHexArr,
+  deserializeHexArr,
+}
+
+function serializeHexArr(hexArr) {
+  // array of two hex values
+  return hexArr.join('-')
+}
+
+function deserializeHexArr(hexStr) {
+  return hexStr.split('-')
+}
+
+function serializePublicKey(pubkey) {
+  // array of four hex values
+
 }
 
 // return a raw hex string, no 0x prefix

@@ -1,7 +1,10 @@
+import { serializeHexArr } from '@pearmarket/bls-statechannels'
+
 export default {
   state: {
     user: undefined,
     auth: undefined,
+    blsChallengeSig: undefined,
   },
   mutations: {},
   actions: {
@@ -64,5 +67,22 @@ export default {
       state.user = user
       state.auth = auth
     },
+    blsAuth: async ({ state, rootState, dispatch }) => {
+      const { data: challenge } = await dispatch('send', {
+        func: 'bls.auth.challenge',
+      }, { root: true })
+      // sign the challenge string then return in
+      const signature = await dispatch('signHex', challenge.challenge)
+      const pubkey = await rootState.bls.signer.pubkey
+      const { data: res } = await dispatch('send', {
+        func: 'bls.auth.respond',
+        data: {
+          challenge: challenge.challenge,
+          responseSig: serializeHexArr(signature),
+          publicKey: serializeHexArr(pubkey),
+        }
+      })
+      state.blsChallengeSig = serializeHexArr(signature)
+    }
   },
 }

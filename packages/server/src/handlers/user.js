@@ -2,9 +2,9 @@ const bcrypt = require('bcryptjs')
 // const { auth } = require('../middlewares/auth')
 const { nanoid } = require('nanoid')
 
-let db
-module.exports = (app, _db) => {
-  db = _db
+const vars = {}
+module.exports = (app, _vars) => {
+  Object.assign(vars, _vars)
   app.handle('user.create', userCreate)
   app.handle('user.login', userLogin)
 }
@@ -22,7 +22,7 @@ async function userCreate(data, send) {
   const salt = await bcrypt.genSalt(10)
   const passwordHash = await bcrypt.hash(password, salt)
   const userId = nanoid()
-  await db.transaction((_db) => {
+  await vars.db.transaction((_db) => {
     _db.create('User', {
       id: userId,
       username,
@@ -34,10 +34,10 @@ async function userCreate(data, send) {
     })
   })
   // now let's make them a fresh auth token
-  const auth = await db.create('Auth', {
+  const auth = await vars.db.create('Auth', {
     userId,
   })
-  const user = await db.findOne('User', { id: userId })
+  const user = await vars.db.findOne('User', { id: userId })
   send({
     user,
     auth,
@@ -46,7 +46,7 @@ async function userCreate(data, send) {
 
 async function userLogin(data, send) {
   const { username, password } = data
-  const user = await db.findOne('User', {
+  const user = await vars.db.findOne('User', {
     where: {
       username,
     },
@@ -55,7 +55,7 @@ async function userLogin(data, send) {
     send(`No user found with username "${username}"`, 1)
     return
   }
-  const passwordData = await db.findOne('UserPassword', {
+  const passwordData = await vars.db.findOne('UserPassword', {
     where: {
       userId: user.id,
     },
@@ -70,7 +70,7 @@ async function userLogin(data, send) {
     send('Password is incorrect', 1)
     return
   }
-  const auth = await db.create('Auth', {
+  const auth = await vars.db.create('Auth', {
     userId: user.id,
   })
   send({

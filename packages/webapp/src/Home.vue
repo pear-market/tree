@@ -3,6 +3,9 @@
     <div class="header">
       <div>Home</div>
       <div>Pear Node Manager</div>
+      <Button :onClick="() => $router.push('/auth')">
+        Login
+      </Button>
     </div>
     <div spacer style="height: 20px" />
     <div
@@ -30,6 +33,7 @@
     </div>
     <div spacer style="height: 8px" />
     <Button :onClick="() => $router.push('/create')">Create Post</Button>
+    <Button v-if="!$store.state.auth.blsChallengeSig" :onClick="() => openChannel()">Open Channel</Button>
     <div spacer style="height: 8px" />
     <div class="post-cell" v-for="post of $store.state.post.postFeed">
       <div style="display: flex; justify-content: space-between">
@@ -64,14 +68,23 @@ export default class Home extends Vue {
   publicKey = ''
   keyIndex = -2
   async mounted() {
-    await this.$store.dispatch('createSigner')
+    if (!this.$store.state.bls.signer) {
+      await this.$store.dispatch('createSigner')
+    }
     this.publicKey = this.$store.state.bls.signer.pubkey.join('-')
     this.keyIndex = await this.$store.dispatch(
       'loadPubKeyIndex',
       this.$store.state.bls.signer.pubkey
     )
-    const sig = await this.$store.dispatch('sign', 'test')
     await this.$store.dispatch('loadPostFeed')
+  }
+
+  async openChannel() {
+    try {
+      await this.$store.dispatch('blsAuth')
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   async registerPubKey() {

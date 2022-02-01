@@ -72,4 +72,53 @@ module.exports = [
       ['price', 'String'],
     ],
   },
+  {
+    name: 'Channel',
+    primaryKey: 'id',
+    rows: [
+      {
+        name: 'id',
+        unique: true,
+        type: 'String',
+      },
+      ['nonce', 'Int'],
+      ['chainId', 'Int'],
+      ['counterparty', 'Int'],
+      ['latestTurnNum', 'Int'],
+      ['latestState', 'Object'],
+      ['latestCounterSignature', 'String'],
+    ]
+  },
+  {
+    name: 'BLSChallenge',
+    primaryKey: 'challenge',
+    rows: [
+      {
+        name: 'challenge',
+        unique: true,
+        type: 'String',
+      },
+      {
+        name: 'createdAt',
+        type: 'Int',
+        default: () => +new Date(),
+      },
+      {
+        name: 'expiresAt',
+        type: 'Int',
+        default: () => +new Date() + 1000*60*5,
+      },
+      {
+        name: 'responseSig',
+        type: 'String',
+        optional: true,
+        unique: true,
+      },
+      {
+        name: 'publicKey',
+        type: 'String',
+        optional: true,
+      },
+    ]
+  }
 ]

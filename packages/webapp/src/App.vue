@@ -1,7 +1,8 @@
 <template>
   <div id="app">
-    <div v-if="loading">Loading...</div>
-    <router-view v-if="!loading" />
+    <div v-if="loading && !err">Loading...</div>
+    <div v-if="err">Error initializing: {{ err }}</div>
+    <router-view v-if="!loading && !err" />
   </div>
 </template>
 
@@ -14,13 +15,18 @@ import Component from 'vue-class-component'
 })
 export default class App extends Vue {
   loading = true
+  err = null
   async mounted() {
-    await this.$store.dispatch('initDB')
-    await this.$store.dispatch('init')
-    this.loading = false
-    if (!this.$store.state.auth.auth) {
-      this.$router.push('/auth')
+    try {
+      await this.$store.dispatch('initDB')
+      await this.$store.dispatch('init')
+    } catch (err) {
+      this.err = err
     }
+    this.loading = false
+    // if (!this.$store.state.auth.auth) {
+    //   this.$router.push('/auth')
+    // }
   }
 }
 </script>

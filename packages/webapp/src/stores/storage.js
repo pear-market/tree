@@ -33,6 +33,22 @@ const schema = [
       ['userId', 'String'],
     ],
   },
+  {
+    name: 'Channel',
+    primaryKey: 'id',
+    rows: [
+      {
+        name: 'id',
+        unique: true,
+        type: 'String',
+      },
+      ['nonce', 'Int'],
+      ['chainId', 'Int'],
+      ['latestTurnNum', 'Int'],
+      ['latestState', 'Object'],
+      ['latestCounterSignature', 'String'],
+    ]
+  }
 ]
 
 export default {
