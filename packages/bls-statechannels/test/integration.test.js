@@ -9,11 +9,9 @@ const {
   messageToHash,
   hashAppPart,
   hashOutcome,
+  DOMAIN,
 } = require('../src')
-const sha256 = require('js-sha256')
 const assert = require('assert')
-
-const DOMAIN = `0x${sha256('test domain')}`
 
 async function getDeployedContracts() {
   const BLSKeyCache = await ethers.getContractFactory('BLSKeyCache')

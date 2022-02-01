@@ -2,8 +2,15 @@ const { signer, mcl } = require('@thehubbleproject/bls')
 const crypto = require('crypto')
 const sha256 = require('js-sha256')
 const { utils } = require('ethers')
+const { DOMAIN } = require('./domain')
+// TODO: optionally load this if in a web env
+const { Buffer } = require('buffer/')
 
 module.exports = {
+  BLSMove: require('./address'),
+  BLSMoveABI: require('./abi/BLSMove.json'),
+  BLSKeyCache: require('./abi/BLSKeyCache.json'),
+  DOMAIN,
   randomSigner,
   getChannelId,
   hashState,
@@ -13,11 +20,31 @@ module.exports = {
   messageToHash,
   hashAppPart,
   hashOutcome,
+  signerFromSecret,
 }
 
-async function randomSigner(domain = '') {
+// return a raw hex string, no 0x prefix
+function parseDomain(domain) {
+  if (domain.indexOf('0x') === 0 && domain.length === 66) {
+    return domain.replace('0x', '')
+  } else if (domain.length === 64 && /^[0-9a-fA-F]+$/.test(domain)) {
+    return domain
+  } else {
+    return sha256(domain)
+  }
+}
+
+// secret should be a hex string
+async function signerFromSecret(secret, domain = DOMAIN) {
   const factory = await signer.BlsSignerFactory.new()
-  const domainHex = Buffer.from(sha256(domain), 'hex')
+  const domainHex = Buffer.from(parseDomain(domain), 'hex')
+  // secret data
+  return factory.getSigner(domainHex, `0x${secret.replace('0x', '')}`)
+}
+
+async function randomSigner(domain = DOMAIN) {
+  const factory = await signer.BlsSignerFactory.new()
+  const domainHex = Buffer.from(parseDomain(domain), 'hex')
   // secret data
   const rand = await new Promise((rs, rj) => crypto.randomBytes(50, (err, bytes) => err ? rj(err) : rs(bytes)))
   return factory.getSigner(domainHex, `0x${rand.toString('hex')}`)

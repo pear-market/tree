@@ -1,3 +1,7 @@
+const { promises: fs } = require('fs')
+const path = require('path')
+const { DOMAIN } = require('../src/domain')
+
 async function main() {
   const BLSKeyCache = await ethers.getContractFactory('BLSKeyCache')
   const cache = await BLSKeyCache.deploy()
@@ -16,11 +20,18 @@ async function main() {
       BLSOpen: blsOpen.address,
     }
   })
-  const blsMove = await BLSMove.deploy(blsMoveApp.address, 100000)
+  const blsMove = await BLSMove.deploy(blsMoveApp.address, 100000, DOMAIN)
   await blsMove.deployed()
 
   console.log(`Cache address: ${cache.address}`)
   console.log(`BLSMove address: ${blsMove.address}`)
+
+  // now write to a js export
+  const output = `module.exports = { BLSMove: '${blsMove.address}' }`
+  await fs.writeFile(
+    path.join(__dirname, '../src/address.js'),
+    output
+  )
 }
 
 main().catch((err) => {

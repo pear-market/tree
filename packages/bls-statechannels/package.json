@@ -6,6 +6,7 @@
   "author": "Chance Hudson <jchancehud@gmail.com>",
   "homepage": "https://github.com/pear-market/tree#readme",
   "license": "GPL-3.0-or-later",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pear-market/tree.git"

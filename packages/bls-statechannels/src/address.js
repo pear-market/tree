@@ -1,0 +1,1 @@
+module.exports = { BLSMove: '0xE71d58C222EA6CaFACB4A48511A6FA63f0EE36cd' }
