@@ -11,6 +11,8 @@ module.exports = {
   getFixedPart,
   getVariablePart,
   messageToHash,
+  hashAppPart,
+  hashOutcome,
 }
 
 async function randomSigner(domain = '') {
