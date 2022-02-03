@@ -18,10 +18,11 @@ const auth = (db) => async (data, send, next) => {
   next()
 }
 
-const blsAuth = (db) => async (data, send, next) => {
+const blsAuth = (db, optional = false) => async (data, send, next) => {
   data.blsChallenge = {}
   if (!data.challenge) {
-    send('No bls challenge provided', 1)
+    if (!optional) send('No bls challenge provided', 1)
+    else next()
     return
   }
   const blsChallenge = await db.findOne('BLSChallenge', {
@@ -30,9 +31,11 @@ const blsAuth = (db) => async (data, send, next) => {
     }
   })
   if (!blsChallenge) {
-    send('No challenge found', 1)
+    if (!optional) send('No challenge found', 1)
+    else next()
   } else if (!blsChallenge.isComplete) {
-    send('Challenge not complete', 1)
+    if (!optional) send('Challenge not complete', 1)
+    else next()
   } else {
     data.blsChallenge = blsChallenge
     next()

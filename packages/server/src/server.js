@@ -1,7 +1,7 @@
 const especial = require('especial')
 const { DB, SQLiteConnector } = require('anondb/node')
 const schema = require('./schema')
-const { DOMAIN, signerFromSecret, BLSMoveAddress, BLSMoveABI } = require('@pearmarket/bls-statechannels')
+const { DOMAIN, signerFromSecret, BLSMoveAddress, AdjudicatorABI } = require('@pearmarket/bls-statechannels')
 const { ethers } = require('ethers')
 
 const GETH_URL = 'ws://192.168.1.198:9546'
@@ -20,7 +20,7 @@ async function start() {
   const provider = new ethers.providers.WebSocketProvider(GETH_URL)
   const BLSMove = new ethers.Contract(
     BLSMoveAddress,
-    BLSMoveABI,
+    AdjudicatorABI,
     provider
   )
 

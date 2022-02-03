@@ -31,7 +31,7 @@ function extendLogs(level) {
     state.logs = [...state.logs, {
       level,
       ...(typeof newLog === 'string' ? { text: newLog } : newLog),
-    }].slice(-10)
+    }].slice(-5)
   }
 }
 

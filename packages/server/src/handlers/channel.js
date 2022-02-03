@@ -23,6 +23,7 @@ module.exports = (app, _vars) => {
   app.handle('bls.auth.respond', respondChallenge)
   app.handle('channel.info', blsAuth(vars.db), channelInfo)
   app.handle('channel.create', blsAuth(vars.db), createChannel)
+  app.handle('channel.refresh', refreshChannel)
   app.handle('channel.advance', blsAuth(vars.db), advanceChannel)
   app.handle('post.purchase.state', blsAuth(vars.db), purchaseState)
   app.handle('post.purchase', blsAuth(vars.db), purchasePost)
@@ -151,6 +152,35 @@ async function channelInfo(data, send) {
     state: initialState,
     signature,
   })
+}
+
+async function refreshChannel(data, send) {
+  const { channelId, blsChallenge } = data
+  const channel = await vars.db.findOne('Channel', {
+    where: {
+      id: channelId,
+    }
+  })
+  if (!channel) {
+    send(`Unable to find channel with id: "${channelId}"`, 1)
+    return
+  }
+  const { allocations } = channel.latestState.outcome[0]
+  const expectedBalance = allocations[0].amount + allocations[1].amount
+  const balance = await vars.BLSMove.holdings(ethers.constants.AddressZero, channelId)
+  if (!balance.eq(expectedBalance)) {
+    send(0)
+    return
+  }
+  await vars.db.update('Channel', {
+    where: {
+      id: channelId,
+    },
+    update: {
+      isFunded: true,
+    }
+  })
+  send(0)
 }
 
 // Supply a proof that the user controls the private key they claim in the channel
@@ -340,7 +370,11 @@ async function purchasePost(data, send) {
   })
   send({
     state,
-    signature: await signState(state, vars.signer)
+    signature: await signState(state, vars.signer),
+    post: {
+      ...post,
+      purchased: true,
+    },
   })
 }
 

@@ -87,6 +87,7 @@ module.exports = [
       ['latestTurnNum', 'Int'],
       ['latestState', 'Object'],
       ['latestCounterSignature', 'String'],
+      ['isFunded', 'Bool', { default: false }],
     ]
   },
   {

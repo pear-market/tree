@@ -41,6 +41,17 @@
           Channel balance: {{ $store.state.channel.balance.toString() }}
         </div>
       </div>
+      <div>
+        <div>Internal Balances</div>
+        <div spacer style="height: 8px" />
+        <div v-if="$store.state.channel.balance !== undefined">
+          My balance: {{ $store.state.channel.latestState.outcome[0].allocations[0].amount.toString() }}
+        </div>
+        <div spacer style="height: 8px" />
+        <div v-if="$store.state.channel.balance !== undefined">
+          Their balance: {{ $store.state.channel.latestState.outcome[0].allocations[1].amount.toString() }}
+        </div>
+      </div>
       <Button
         v-if="+$store.state.channel.balance.toString() === 0"
         :onClick="() => deposit()"
@@ -68,8 +79,8 @@
       <div>
         {{ post.fullText }}
       </div>
-      <div spacer style="height: 8px" />
-      <Button :onClick="() => viewPost(post)">
+      <div spacer v-if="!post.purchased" style="height: 8px" />
+      <Button v-if="!post.purchased" :onClick="() => viewPost(post)">
         View Post ({{ post.price }} wei)
       </Button>
     </div>
@@ -130,7 +141,8 @@ export default class Home extends Vue {
   }
 
   async deposit() {
-    await this.$store.dispatch('deposit')
+    const tx = await this.$store.dispatch('deposit')
+    console.log(tx)
   }
 }
 </script>

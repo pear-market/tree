@@ -42,8 +42,9 @@ export default {
       state.latestSignature = channel.signature
       await dispatch('loadBalance')
     },
-    purchasePost: async ({ state, rootState, dispatch }, { id, price }) => {
+    purchasePost: async ({ state, rootState, dispatch, commit }, { id, price }) => {
       if (!state.latestState) throw new Error('No channel loaded')
+      commit('logNormal', 'Purchasing post...', { root: true })
       const channelId = getChannelId(state.latestState.channel)
       const { data: nextState } = await dispatch('send', {
         func: 'post.purchase.state',
@@ -55,7 +56,7 @@ export default {
       })
       // TODO: validate next state to make sure price changes are correct
       const signature = signState(nextState, rootState.bls.signer)
-      await dispatch('send', {
+      const { data: { post } } = await dispatch('send', {
         func: 'post.purchase',
         data: {
           challenge: rootState.auth.blsChallenge,
@@ -64,19 +65,38 @@ export default {
           postId: id,
         }
       })
+      commit('logNormal', { append: 'Purchasing post......done' }, { root: true })
+      commit('ingestPost', post, { root: true })
+      state.latestState = nextState
     },
-    loadBalance: async ({ state, rootState }) => {
+    loadBalance: async ({ state, rootState, dispatch }) => {
+      const { data: channel } = await dispatch('send', {
+        func: 'channel.info',
+        data: {
+          challenge: rootState.auth.blsChallenge,
+          counterparty: rootState.contract.keyIndex,
+        }
+      })
       const channelId = getChannelId(state.latestState.channel)
       const balance = await rootState.contract.blsMove.holdings(ethers.constants.AddressZero, channelId)
       state.balance = balance
+      if (+state.balance.toString() > 0 && !channel.isFunded) {
+        await dispatch('send', {
+          func: 'channel.refresh',
+          data: {
+            channelId,
+          }
+        })
+      }
     },
-    deposit: async ({ state, rootState }) => {
+    deposit: async ({ state, rootState, dispatch }) => {
       const channelId = getChannelId(state.latestState.channel)
       const expectedAmount = state.latestState.outcome[0].allocations[0].amount
       const keyIndex = await rootState.contract.blsMove.indexByKey(rootState.bls.signer.pubkey)
+      let tx
       if (keyIndex === 0) {
         // need to request the index AND deposit
-        await rootState.contract.blsMove.depositAndRequestKeyIndex(
+        tx = await rootState.contract.blsMove.depositAndRequestKeyIndex(
           rootState.bls.signer.pubkey,
           rootState.contract.keyIndex,
           channelId,
@@ -87,7 +107,7 @@ export default {
         )
       } else {
         // just deposit
-        await rootState.contract.blsMove.deposit(
+        tx = await rootState.contract.blsMove.deposit(
           ethers.constants.AddressZero,
           channelId,
           0,
@@ -97,6 +117,13 @@ export default {
           }
         )
       }
+      await tx.wait()
+      await dispatch('send', {
+        func: 'channel.refresh',
+        data: {
+          channelId,
+        }
+      })
     }
   }
 }
