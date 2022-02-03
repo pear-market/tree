@@ -88,7 +88,7 @@ module.exports = [
       ['latestState', 'Object'],
       ['latestCounterSignature', 'String'],
       ['isFunded', 'Bool', { default: false }],
-    ]
+    ],
   },
   {
     name: 'BLSChallenge',
@@ -107,7 +107,7 @@ module.exports = [
       {
         name: 'expiresAt',
         type: 'Int',
-        default: () => +new Date() + 1000*60*5,
+        default: () => +new Date() + 1000 * 60 * 5,
       },
       ['isComplete', 'Bool', { default: false }],
       {
@@ -121,7 +121,7 @@ module.exports = [
         type: 'String',
         optional: true,
       },
-    ]
+    ],
   },
   {
     name: 'Purchase',
@@ -140,6 +140,6 @@ module.exports = [
       ['postId', 'String'],
       ['ownerPublicKey', 'String'],
       ['channelId', 'String'],
-    ]
-  }
+    ],
+  },
 ]

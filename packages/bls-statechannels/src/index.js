@@ -59,7 +59,9 @@ async function randomSigner(domain = DOMAIN) {
   const factory = await signer.BlsSignerFactory.new()
   const domainHex = Buffer.from(parseDomain(domain), 'hex')
   // secret data
-  const rand = await new Promise((rs, rj) => crypto.randomBytes(50, (err, bytes) => err ? rj(err) : rs(bytes)))
+  const rand = await new Promise((rs, rj) =>
+    crypto.randomBytes(50, (err, bytes) => (err ? rj(err) : rs(bytes)))
+  )
   return factory.getSigner(domainHex, `0x${rand.toString('hex')}`)
 }
 
@@ -86,42 +88,35 @@ function getChannelId(channel) {
   const channelId = utils.keccak256(
     utils.defaultAbiCoder.encode(
       ['uint256', 'uint48[]', 'uint256'],
-      [chainId, participants, nonce],
+      [chainId, participants, nonce]
     )
   )
   return channelId
 }
 
-const outcomeFormat =
-  {
-    type: 'tuple[]',
-    components: [
-      { name: 'asset', type: 'address' },
-      { name: 'metadata', type: 'bytes' },
-      {
-        type: 'tuple[]',
-        name: 'allocations',
-        components: [
-          { name: 'destination', type: 'uint48' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'metadata', type: 'bytes' },
-        ]
-      }
-    ]
-  }
+const outcomeFormat = {
+  type: 'tuple[]',
+  components: [
+    { name: 'asset', type: 'address' },
+    { name: 'metadata', type: 'bytes' },
+    {
+      type: 'tuple[]',
+      name: 'allocations',
+      components: [
+        { name: 'destination', type: 'uint48' },
+        { name: 'amount', type: 'uint256' },
+        { name: 'metadata', type: 'bytes' },
+      ],
+    },
+  ],
+}
 
 function encodeOutcome(outcome) {
-  return utils.defaultAbiCoder.encode(
-    [outcomeFormat],
-    [outcome]
-  )
+  return utils.defaultAbiCoder.encode([outcomeFormat], [outcome])
 }
 
 function decodeOutcome(outcome) {
-  return utils.defaultAbiCoder.decode(
-    [outcomeFormat],
-    [outcome]
-  )
+  return utils.defaultAbiCoder.decode([outcomeFormat], [outcome])
 }
 
 function hashOutcome(outcome) {
@@ -137,13 +132,8 @@ function getVariablePart(state) {
 }
 
 function hashAppPart(state) {
-  const {appData} = state
-  return utils.keccak256(
-    utils.defaultAbiCoder.encode(
-      ['bytes'],
-      [appData]
-    )
-  )
+  const { appData } = state
+  return utils.keccak256(utils.defaultAbiCoder.encode(['bytes'], [appData]))
 }
 
 function hashState(state) {
@@ -157,7 +147,7 @@ function hashState(state) {
       [
         'tuple(uint256 turnNum, bool isFinal, bytes32 channelId, bytes32 appPartHash, bytes32 outcomeHash)',
       ],
-      [{turnNum, isFinal, channelId, appPartHash, outcomeHash}]
+      [{ turnNum, isFinal, channelId, appPartHash, outcomeHash }]
     )
   )
 }

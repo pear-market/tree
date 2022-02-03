@@ -47,8 +47,8 @@ const schema = [
       ['latestTurnNum', 'Int'],
       ['latestState', 'Object'],
       ['latestCounterSignature', 'String'],
-    ]
-  }
+    ],
+  },
 ]
 
 export default {

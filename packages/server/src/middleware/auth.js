@@ -18,28 +18,30 @@ const auth = (db) => async (data, send, next) => {
   next()
 }
 
-const blsAuth = (db, optional = false) => async (data, send, next) => {
-  data.blsChallenge = {}
-  if (!data.challenge) {
-    if (!optional) send('No bls challenge provided', 1)
-    else next()
-    return
-  }
-  const blsChallenge = await db.findOne('BLSChallenge', {
-    where: {
-      challenge: data.challenge,
+const blsAuth =
+  (db, optional = false) =>
+  async (data, send, next) => {
+    data.blsChallenge = {}
+    if (!data.challenge) {
+      if (!optional) send('No bls challenge provided', 1)
+      else next()
+      return
     }
-  })
-  if (!blsChallenge) {
-    if (!optional) send('No challenge found', 1)
-    else next()
-  } else if (!blsChallenge.isComplete) {
-    if (!optional) send('Challenge not complete', 1)
-    else next()
-  } else {
-    data.blsChallenge = blsChallenge
-    next()
+    const blsChallenge = await db.findOne('BLSChallenge', {
+      where: {
+        challenge: data.challenge,
+      },
+    })
+    if (!blsChallenge) {
+      if (!optional) send('No challenge found', 1)
+      else next()
+    } else if (!blsChallenge.isComplete) {
+      if (!optional) send('Challenge not complete', 1)
+      else next()
+    } else {
+      data.blsChallenge = blsChallenge
+      next()
+    }
   }
-}
 
 module.exports = { auth, blsAuth }

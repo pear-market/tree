@@ -10,7 +10,9 @@
     >
       <div v-show="!this.loading && !this.errored"><slot></slot></div>
       <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
-      <div v-if="this.errored">{{ this.errorText || this.errorMessage || 'There was a problem' }}</div>
+      <div v-if="this.errored">
+        {{ this.errorText || this.errorMessage || 'There was a problem' }}
+      </div>
     </div>
   </div>
 </template>

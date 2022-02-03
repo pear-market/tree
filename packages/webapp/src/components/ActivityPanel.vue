@@ -15,9 +15,7 @@ import Component from 'vue-class-component'
 @Component({
   name: 'ActivityPanel',
 })
-export default class ActivityPanel extends Vue {
-
-}
+export default class ActivityPanel extends Vue {}
 </script>
 
 <style scoped>

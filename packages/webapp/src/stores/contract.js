@@ -1,8 +1,5 @@
 import { ethers } from 'ethers'
-import {
-  BLSMoveAddress,
-  AdjudicatorABI,
-} from '@pearmarket/bls-statechannels'
+import { BLSMoveAddress, AdjudicatorABI } from '@pearmarket/bls-statechannels'
 
 const GETH_URL = 'ws://192.168.1.198:9546'
 
@@ -10,7 +7,7 @@ export default {
   state: {
     keyIndex: -1,
     pubKeyCache: undefined,
-    blsMove: undefined
+    blsMove: undefined,
   },
   mutations: {},
   actions: {
@@ -41,14 +38,17 @@ export default {
       if (state.keyIndex > 0) return
       const firstRequestableKey = await state.blsMove.firstRequestableKey()
       for (;;) {
-        const reserveValue = firstRequestableKey + Math.floor((Math.random() * firstRequestableKey))
+        const reserveValue =
+          firstRequestableKey + Math.floor(Math.random() * firstRequestableKey)
         try {
-          await state.blsMove.estimateGas.registerPublicKeyIndex(rootState.bls.signer.pubkey, reserveValue)
+          await state.blsMove.estimateGas.registerPublicKeyIndex(
+            rootState.bls.signer.pubkey,
+            reserveValue
+          )
           state.keyIndex = reserveValue
           return
         } catch (err) {}
-
       }
-    }
+    },
   },
 }

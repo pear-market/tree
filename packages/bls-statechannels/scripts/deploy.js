@@ -18,7 +18,7 @@ async function main() {
   const Adjudicator = await ethers.getContractFactory('Adjudicator', {
     libraries: {
       BLSOpen: blsOpen.address,
-    }
+    },
   })
   const blsMove = await Adjudicator.deploy(blsMoveApp.address, 100000, DOMAIN)
   await blsMove.deployed()
@@ -28,10 +28,7 @@ async function main() {
 
   // now write to a js export
   const output = `module.exports = { BLSMove: '${blsMove.address}' }`
-  await fs.writeFile(
-    path.join(__dirname, '../src/address.js'),
-    output
-  )
+  await fs.writeFile(path.join(__dirname, '../src/address.js'), output)
 }
 
 main().catch((err) => {

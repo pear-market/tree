@@ -1,7 +1,5 @@
 import { Buffer } from 'buffer/'
-import {
-  signerFromSecret,
-} from '@pearmarket/bls-statechannels'
+import { signerFromSecret } from '@pearmarket/bls-statechannels'
 
 export default {
   state: {
@@ -20,6 +18,6 @@ export default {
     signHex: async ({ state }, data) => {
       if (typeof data !== 'string') throw new Error('Expected string')
       return state.signer.sign(`0x${data.replace('0x', '')}`)
-    }
+    },
   },
 }

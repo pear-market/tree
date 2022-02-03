@@ -2,7 +2,9 @@
   <div class="container">
     <div class="header">
       <div>
-        <div class="silent-link" v-on:click="$router.push('/auth')">Pear Node</div>
+        <div class="silent-link" v-on:click="$router.push('/auth')">
+          Pear Node
+        </div>
       </div>
       <ActivityPanel />
     </div>
@@ -45,11 +47,19 @@
         <div>Internal Balances</div>
         <div spacer style="height: 8px" />
         <div v-if="$store.state.channel.balance !== undefined">
-          My balance: {{ $store.state.channel.latestState.outcome[0].allocations[0].amount.toString() }} wei
+          My balance:
+          {{
+            $store.state.channel.latestState.outcome[0].allocations[0].amount.toString()
+          }}
+          wei
         </div>
         <div spacer style="height: 8px" />
         <div v-if="$store.state.channel.balance !== undefined">
-          Server balance: {{ $store.state.channel.latestState.outcome[0].allocations[1].amount.toString() }} wei
+          Server balance:
+          {{
+            $store.state.channel.latestState.outcome[0].allocations[1].amount.toString()
+          }}
+          wei
         </div>
       </div>
       <Button
@@ -60,15 +70,25 @@
       </Button>
     </div>
     <div spacer style="height: 8px" />
-    <div v-if="$store.state.auth.auth" style="display: flex; flex-direction: column; border: 1px solid black">
+    <div
+      v-if="$store.state.auth.auth"
+      style="display: flex; flex-direction: column; border: 1px solid black"
+    >
       <div>0 Total Posts</div>
       <div>0 Askers</div>
     </div>
-    <div v-if="!$store.state.auth.auth" style="text-align: center; font-size: 20px; font-weight: bold">
+    <div
+      v-if="!$store.state.auth.auth"
+      style="text-align: center; font-size: 20px; font-weight: bold"
+    >
       Posts on this server
     </div>
     <div spacer style="height: 8px" />
-    <Button v-if="$store.state.auth.auth" :onClick="() => $router.push('/create')">Create Post</Button>
+    <Button
+      v-if="$store.state.auth.auth"
+      :onClick="() => $router.push('/create')"
+      >Create Post</Button
+    >
     <!-- <Button v-if="!$store.state.auth.blsChallengeSig" :onClick="() => authBLS()">Auth BLS</Button> -->
     <div spacer style="height: 8px" />
     <div class="post-cell" v-for="post of $store.state.post.postFeed">
@@ -100,7 +120,7 @@ dayjs.extend(relativeTime)
 
 @Component({
   name: 'Home',
-  components: { Button, ActivityPanel, },
+  components: { Button, ActivityPanel },
   metaInfo: {
     title: 'Pear Tree',
   },

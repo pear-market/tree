@@ -72,7 +72,7 @@ export default {
         params: [state.accounts[0], msgParams],
       })
       commit('logNormal', {
-        append: 'Determining BLS private key......done'
+        append: 'Determining BLS private key......done',
       })
       return signedData
     },

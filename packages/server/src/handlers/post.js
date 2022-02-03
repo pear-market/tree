@@ -26,13 +26,13 @@ async function loadPosts(data, send) {
     where: {},
     orderBy: {
       createdAt: 'desc',
-    }
+    },
   })
   const purchased = await vars.db.findMany('Purchase', {
     where: {
       postId: posts.map(({ id }) => id),
       ownerPublicKey: blsChallenge.publicKey,
-    }
+    },
   })
   const purchasedById = purchased.reduce((acc, next) => {
     return {
@@ -40,11 +40,13 @@ async function loadPosts(data, send) {
       [next.postId]: true,
     }
   }, {})
-  send(posts.map((p) => ({
-    ...p,
-    fullText: purchasedById[p.id] ? p.fullText : '',
-    purchased: !!purchasedById[p.id],
-  })))
+  send(
+    posts.map((p) => ({
+      ...p,
+      fullText: purchasedById[p.id] ? p.fullText : '',
+      purchased: !!purchasedById[p.id],
+    }))
+  )
 }
 
 async function loadFullPost(data, send) {
@@ -53,7 +55,7 @@ async function loadFullPost(data, send) {
     where: {
       ownerPublicKey: blsChallenge.publicKey,
       postId,
-    }
+    },
   })
   if (!existingPurchase) {
     send('Post has not been purchased', 1)
@@ -62,7 +64,7 @@ async function loadFullPost(data, send) {
   const post = await vars.db.findOne('Post', {
     where: {
       id: postId,
-    }
+    },
   })
   send(post)
 }
