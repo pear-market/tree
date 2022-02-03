@@ -7,3 +7,5 @@ build
 artifacts/
 cache/
 
+wrangler.toml
+workers-site/

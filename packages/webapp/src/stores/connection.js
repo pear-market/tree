@@ -1,8 +1,11 @@
 const especial = require('especial/client')
 
+const WS_URL = 'ws://localhost:4000'
+// const WS_URL = 'wss://ws.peartree.tubby.cloud'
+
 export default {
   state: {
-    url: 'ws://localhost:4000',
+    url: WS_URL,
     client: undefined,
   },
   mutations: {},

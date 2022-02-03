@@ -3,12 +3,13 @@ const { DB, SQLiteConnector } = require('anondb/node')
 const schema = require('./schema')
 const { DOMAIN, signerFromSecret, BLSMoveAddress, AdjudicatorABI } = require('@pearmarket/bls-statechannels')
 const { ethers } = require('ethers')
+const path = require('path')
 
-const GETH_URL = 'ws://192.168.1.198:9546'
+const GETH_URL = process.env.GETH_URL ?? 'ws://192.168.1.198:9546'
 
 async function start() {
   // init the database
-  const db = await SQLiteConnector.create(schema, 'db.sqlite')
+  const db = await SQLiteConnector.create(schema, process.env.DB_PATH ?? 'db.sqlite')
 
   const signer = await signerFromSecret(process.env.BLS_SECRET ?? '0xabc123')
 
