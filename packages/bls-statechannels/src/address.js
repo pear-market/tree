@@ -1,1 +1,1 @@
-module.exports = { BLSMove: '0xE71d58C222EA6CaFACB4A48511A6FA63f0EE36cd' }
+module.exports = { BLSMove: '0x6f6884291b9ECE08d34245E5BC53899F80cDeB60' }

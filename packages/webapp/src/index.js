@@ -14,6 +14,7 @@ import EthStore from './stores/eth'
 import ContractStore from './stores/contract'
 import PostStore from './stores/post'
 import ActivityStore from './stores/activity'
+import ChannelStore from './stores/channel'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -32,6 +33,7 @@ export function createApp(cookie) {
       bls: BLSStore,
       contract: ContractStore,
       post: PostStore,
+      channel: ChannelStore,
     },
   })
   const router = new VueRouter({

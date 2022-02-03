@@ -24,6 +24,10 @@ function extendLogs(level) {
       })
       return
     }
+    if (newLog.remove) {
+      state.logs = state.logs.filter(log => !newLog.remove.startsWith(log.text))
+      return
+    }
     state.logs = [...state.logs, {
       level,
       ...(typeof newLog === 'string' ? { text: newLog } : newLog),

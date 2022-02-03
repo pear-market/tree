@@ -15,12 +15,12 @@ async function main() {
   const blsOpen = await BLSOpen.deploy()
   await blsOpen.deployed()
 
-  const BLSMove = await ethers.getContractFactory('BLSMove', {
+  const Adjudicator = await ethers.getContractFactory('Adjudicator', {
     libraries: {
       BLSOpen: blsOpen.address,
     }
   })
-  const blsMove = await BLSMove.deploy(blsMoveApp.address, 100000, DOMAIN)
+  const blsMove = await Adjudicator.deploy(blsMoveApp.address, 100000, DOMAIN)
   await blsMove.deployed()
 
   console.log(`Cache address: ${cache.address}`)

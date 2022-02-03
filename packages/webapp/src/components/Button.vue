@@ -10,7 +10,7 @@
     >
       <div v-show="!this.loading && !this.errored"><slot></slot></div>
       <div v-if="this.loading">{{ loadingText || 'Loading...' }}</div>
-      <div v-if="this.errored">{{ errorText || 'There was a problem' }}</div>
+      <div v-if="this.errored">{{ this.errorText || this.errorMessage || 'There was a problem' }}</div>
     </div>
   </div>
 </template>
@@ -26,6 +26,7 @@ import Component from 'vue-class-component'
 export default class Button extends Vue {
   loading = false
   errored = false
+  errorMessage = 'There was a problem'
 
   async _onClick(e) {
     e.preventDefault()
@@ -41,6 +42,11 @@ export default class Button extends Vue {
       this.loading = false
       this.errored = true
       console.log('Uncaught button handler error', err)
+      if (err.toString().startsWith('Error: Button: ')) {
+        this.errorMessage = err.toString().replace('Error: Button: ', '')
+      } else {
+        this.errorMessage = 'There was a problem'
+      }
       setTimeout(() => {
         this.errored = false
       }, 3000)

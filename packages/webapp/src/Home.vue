@@ -7,7 +7,7 @@
       <ActivityPanel />
     </div>
     <div spacer style="height: 20px" />
-    <div
+    <!-- <div
       v-if="$store.state.bls.signer"
       style="
         display: flex;
@@ -24,28 +24,37 @@
         Upload Public Key
       </Button>
       <div v-if="keyIndex > 0">Key index: {{ keyIndex }}</div>
-    </div>
+    </div> -->
     <div spacer style="height: 8px" />
     <div
-      v-if="$store.state.bls.signer"
+      v-if="$store.state.channel.latestState"
       style="
         display: flex;
         justify-content: space-between;
         border: 1px solid black;
       "
     >
-      <div>No active state channel</div>
+      <div>
+        <div>State channel</div>
+        <div spacer style="height: 8px" />
+        <div v-if="$store.state.channel.balance !== undefined">
+          Channel balance: {{ $store.state.channel.balance.toString() }}
+        </div>
+      </div>
       <Button
-        v-if="$store.state.bls.signer"
-        :onClick="() => openStateChannel()"
+        v-if="+$store.state.channel.balance.toString() === 0"
+        :onClick="() => deposit()"
       >
-        Create State Channel
+        Deposit funds
       </Button>
     </div>
     <div spacer style="height: 8px" />
     <div v-if="$store.state.auth.auth" style="display: flex; flex-direction: column; border: 1px solid black">
       <div>0 Total Posts</div>
       <div>0 Askers</div>
+    </div>
+    <div v-if="!$store.state.auth.auth" style="text-align: center; font-size: 20px; font-weight: bold">
+      Posts on this server
     </div>
     <div spacer style="height: 8px" />
     <Button v-if="$store.state.auth.auth" :onClick="() => $router.push('/create')">Create Post</Button>
@@ -83,21 +92,17 @@ import ActivityPanel from './components/ActivityPanel'
 })
 export default class Home extends Vue {
   publicKey = ''
-  keyIndex = -2
   async mounted() {
     if (!this.$store.state.bls.signer) {
       await this.$store.dispatch('createSigner')
     }
     this.publicKey = this.$store.state.bls.signer.pubkey.join('-')
-    this.keyIndex = await this.$store.dispatch(
-      'loadPubKeyIndex',
-      this.$store.state.bls.signer.pubkey
-    )
     if (!this.$store.state.auth.blsChallengeSig) {
       await this.authBLS()
       this.$store.commit('logUrgent', 'You may now open a state channel')
     }
     await this.$store.dispatch('loadPostFeed')
+    await this.$store.dispatch('loadChannel')
   }
 
   async authBLS() {
@@ -129,10 +134,15 @@ export default class Home extends Vue {
 
   async openStateChannel() {
     // determine a registration key first
+
   }
 
   async viewPost(id) {
+    throw new Error('Button: Open a state channel first!')
+  }
 
+  async deposit() {
+    await this.$store.dispatch('deposit')
   }
 }
 </script>

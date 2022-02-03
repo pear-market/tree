@@ -15,7 +15,7 @@ contract Adjudicator is BLSMove, AssetHolder {
     uint expectedHeld
   ) public payable {
     this.registerPublicKeyIndex(publicKey, requestedIndex);
-    this.deposit(
+    this.deposit{ value: msg.value }(
       address(0),
       channelId,
       expectedHeld,

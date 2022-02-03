@@ -10,6 +10,7 @@ module.exports = {
   BLSMoveAddress: require('./address').BLSMove,
   BLSMoveABI: require('./abi/BLSMove.json'),
   BLSKeyCacheABI: require('./abi/BLSKeyCache.json'),
+  AdjudicatorABI: require('./abi/Adjudicator.json'),
   DOMAIN,
   randomSigner,
   getChannelId,
@@ -23,6 +24,7 @@ module.exports = {
   signerFromSecret,
   serializeHexArr,
   deserializeHexArr,
+  verifyStateSig,
 }
 
 function serializeHexArr(hexArr) {
@@ -32,11 +34,6 @@ function serializeHexArr(hexArr) {
 
 function deserializeHexArr(hexStr) {
   return hexStr.split('-')
-}
-
-function serializePublicKey(pubkey) {
-  // array of four hex values
-
 }
 
 // return a raw hex string, no 0x prefix
@@ -79,6 +76,11 @@ async function signState(state, blsSigner) {
   return signature
 }
 
+async function verifyStateSig(state, signature, pubkey, blsSigner) {
+  const hashedState = hashState(state)
+  return blsSigner.verify(signature, pubkey, hashedState)
+}
+
 function getChannelId(channel) {
   const { chainId, participants, nonce } = channel
   const channelId = utils.keccak256(
@@ -100,9 +102,8 @@ const outcomeFormat =
         type: 'tuple[]',
         name: 'allocations',
         components: [
-          { name: 'destination', type: 'bytes32' },
+          { name: 'destination', type: 'uint48' },
           { name: 'amount', type: 'uint256' },
-          { name: 'allocationType', type: 'uint8' },
           { name: 'metadata', type: 'bytes' },
         ]
       }

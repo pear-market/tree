@@ -1,7 +1,7 @@
 pragma solidity ^0.7.0;
 
 contract BLSKeyCache {
-  mapping (uint48 => uint[4]) publicKeys;
+  mapping (uint48 => uint[4]) public publicKeys;
   mapping (bytes32 => uint48) indexesByKey;
   uint48 count = 1;
   uint48 public firstRequestableKey = type(uint48).max / 2;

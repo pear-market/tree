@@ -5,6 +5,7 @@ export default {
     user: undefined,
     auth: undefined,
     blsChallengeSig: undefined,
+    blsChallenge: undefined,
   },
   mutations: {},
   actions: {
@@ -84,6 +85,7 @@ export default {
         }
       })
       state.blsChallengeSig = serializeHexArr(signature)
+      state.blsChallenge = challenge.challenge
       commit('logNormal', {
         append: 'Proving BLS key to remote......done',
       })

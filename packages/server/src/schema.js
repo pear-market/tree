@@ -108,6 +108,7 @@ module.exports = [
         type: 'Int',
         default: () => +new Date() + 1000*60*5,
       },
+      ['isComplete', 'Bool', { default: false }],
       {
         name: 'responseSig',
         type: 'String',

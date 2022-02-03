@@ -60,9 +60,9 @@ contract AssetHolder is IAssetHolder {
         holdings[asset][channelId] = nowHeld;
         emit Deposited(channelId, asset, amountDeposited, nowHeld);
 
-        if (asset == address(0)) {
+        uint256 refund = amount.sub(amountDeposited);
+        if (asset == address(0) && refund != 0) {
             // refund whatever wasn't deposited.
-            uint256 refund = amount.sub(amountDeposited);
             (bool success, ) = msg.sender.call{value: refund}(''); //solhint-disable-line avoid-low-level-calls
             require(success, 'Could not refund excess funds');
         }
