@@ -67,7 +67,8 @@ export default {
       state.user = user
       state.auth = auth
     },
-    blsAuth: async ({ state, rootState, dispatch }) => {
+    blsAuth: async ({ state, rootState, dispatch, commit }) => {
+      commit('logNormal', 'Proving BLS key to remote...')
       const { data: challenge } = await dispatch('send', {
         func: 'bls.auth.challenge',
       }, { root: true })
@@ -83,6 +84,9 @@ export default {
         }
       })
       state.blsChallengeSig = serializeHexArr(signature)
+      commit('logNormal', {
+        append: 'Proving BLS key to remote......done',
+      })
     }
   },
 }

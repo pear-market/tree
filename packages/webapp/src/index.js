@@ -13,6 +13,7 @@ import BLSStore from './stores/bls'
 import EthStore from './stores/eth'
 import ContractStore from './stores/contract'
 import PostStore from './stores/post'
+import ActivityStore from './stores/activity'
 
 export function createApp(cookie) {
   Vue.use(VueRouter)
@@ -23,6 +24,7 @@ export function createApp(cookie) {
     mutations: {},
     actions: {},
     modules: {
+      activity: ActivityStore,
       eth: EthStore,
       auth: AuthStore,
       connection: ConnectionStore,

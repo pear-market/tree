@@ -46,7 +46,8 @@ export default {
         // dispatch('resetWallet', null, { root: true }),
       ])
     },
-    keySignature: async ({ state }) => {
+    keySignature: async ({ state, commit }) => {
+      commit('logNormal', 'Determining BLS private key...')
       const msgParams = JSON.stringify({
         domain: {
           chainId: 5,
@@ -69,6 +70,9 @@ export default {
       const signedData = await window.ethereum.request({
         method: 'eth_signTypedData_v4',
         params: [state.accounts[0], msgParams],
+      })
+      commit('logNormal', {
+        append: 'Determining BLS private key......done'
       })
       return signedData
     },
