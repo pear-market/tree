@@ -69,8 +69,8 @@
         {{ post.fullText }}
       </div>
       <div spacer style="height: 8px" />
-      <Button :onClick="() => viewPost(post.id)">
-        View Post (1000 Gwei)
+      <Button :onClick="() => viewPost(post)">
+        View Post ({{ post.price }} wei)
       </Button>
     </div>
   </div>
@@ -99,10 +99,11 @@ export default class Home extends Vue {
     this.publicKey = this.$store.state.bls.signer.pubkey.join('-')
     if (!this.$store.state.auth.blsChallengeSig) {
       await this.authBLS()
-      this.$store.commit('logUrgent', 'You may now open a state channel')
     }
-    await this.$store.dispatch('loadPostFeed')
-    await this.$store.dispatch('loadChannel')
+    await Promise.all([
+      this.$store.dispatch('loadPostFeed'),
+      this.$store.dispatch('loadChannel'),
+    ])
   }
 
   async authBLS() {
@@ -110,14 +111,6 @@ export default class Home extends Vue {
       await this.$store.dispatch('blsAuth')
     } catch (err) {
       console.error(err)
-    }
-  }
-
-  async openChannel() {
-    try {
-      // generate a channel
-    } catch (err) {
-      console.log(err)
     }
   }
 
@@ -132,13 +125,8 @@ export default class Home extends Vue {
     )
   }
 
-  async openStateChannel() {
-    // determine a registration key first
-
-  }
-
-  async viewPost(id) {
-    throw new Error('Button: Open a state channel first!')
+  async viewPost(post) {
+    await this.$store.dispatch('purchasePost', post)
   }
 
   async deposit() {

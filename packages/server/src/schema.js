@@ -121,5 +121,24 @@ module.exports = [
         optional: true,
       },
     ]
+  },
+  {
+    name: 'Purchase',
+    primaryKey: 'id',
+    rows: [
+      {
+        name: 'id',
+        type: 'String',
+        default: () => nanoid(),
+      },
+      {
+        name: 'createdAt',
+        type: 'Int',
+        default: () => +new Date(),
+      },
+      ['postId', 'String'],
+      ['ownerPublicKey', 'String'],
+      ['channelId', 'String'],
+    ]
   }
 ]

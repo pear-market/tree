@@ -10,6 +10,7 @@ const {
   serializeHexArr,
   signState,
   verifyStateSig,
+  hashState,
 } = require('@pearmarket/bls-statechannels')
 const crypto = require('crypto')
 
@@ -23,6 +24,8 @@ module.exports = (app, _vars) => {
   app.handle('channel.info', blsAuth(vars.db), channelInfo)
   app.handle('channel.create', blsAuth(vars.db), createChannel)
   app.handle('channel.advance', blsAuth(vars.db), advanceChannel)
+  app.handle('post.purchase.state', blsAuth(vars.db), purchaseState)
+  app.handle('post.purchase', blsAuth(vars.db), purchasePost)
 }
 
 // return a hex string of random data of a certain byte length
@@ -81,27 +84,21 @@ async function respondChallenge(data, send) {
 }
 
 async function channelInfo(data, send) {
-  const { counterparty } = data
+  const { counterparty, blsChallenge } = data
   const latestChannel = await vars.db.findOne('Channel', {
     where: {
       counterparty,
     },
     orderBy: { nonce: 'desc' },
   })
-  if (latestChannel?.latestState?.isFinal === false) {
-    send(latestChannel)
+  if (latestChannel?.latestState?.isFinal === false && latestChannel.latestCounterSignature) {
+    send({
+      state: latestChannel.latestState,
+      signature: await signState(latestChannel.latestState, vars.signer)
+    })
     return
   }
-  send({
-    nonce: (latestChannel?.nonce ?? 0)+ 1,
-  })
-}
-
-// Supply a proof that the user controls the private key they claim in the channel
-async function createChannel(data, send) {
-  // take a signature from the data and validate it, if the proposed state is
-  // acceptable then countersign and return
-  const { nonce, counterparty, blsChallenge } = data
+  const nonce = (latestChannel?.nonce ?? 0) + 1
   const existingNonce = await vars.db.findOne('Channel', {
     where: {
       counterparty,
@@ -116,11 +113,22 @@ async function createChannel(data, send) {
       chainId: 0x5, nonce, participants: [vars.keyIndex, counterparty]
     },
     outcome: [
-      { asset: '0x0000000000000000000000000000000000000000', metadata: '0x00', allocations: [{
-        destination: counterparty,
-        amount: 10**15,
+      {
+        asset: '0x0000000000000000000000000000000000000000',
         metadata: '0x00',
-      }]}
+        allocations: [
+          {
+            destination: counterparty,
+            amount: 10**15,
+            metadata: '0x00',
+          },
+          {
+            destination: vars.keyIndex,
+            amount: 0,
+            metadata: '0x00',
+          },
+        ]
+      }
     ],
     turnNum: 0,
     isFinal: false,
@@ -137,10 +145,202 @@ async function createChannel(data, send) {
     latestCounterSignature: '',
   })
   // now execute a signature
-  const signature = signState(initialState, vars.signer)
+  const signature = await signState(initialState, vars.signer)
   send({
+    needsInitialSig: true,
     state: initialState,
     signature,
+  })
+}
+
+// Supply a proof that the user controls the private key they claim in the channel
+async function createChannel(data, send) {
+  // take a signature from the data and validate it, if the proposed state is
+  // acceptable then countersign and return
+  const { state, signature, blsChallenge } = data
+  const channelId = getChannelId(state.channel)
+  const channel = await vars.db.findOne('Channel', {
+    where: {
+      id: channelId,
+    }
+  })
+  if (!channel) {
+    send(`Unable to find channel with id: "${channelId}"`, 1)
+    return
+  }
+  // should provide a countersignature for the latest state
+  const knownHash = hashState(channel.latestState)
+  const receivedHash = hashState(state)
+  if (knownHash !== receivedHash) {
+    send('Invalid state provided', 1)
+    return
+  }
+  const valid = verifyStateSig(state, signature, deserializeHexArr(blsChallenge.publicKey), vars.signer)
+  if (!valid) {
+    send('Invalid signature', 1)
+    return
+  }
+  await vars.db.update('Channel', {
+    where: {
+      id: channelId,
+    },
+    update: {
+      latestState: state,
+      latestCounterSignature: serializeHexArr(signature),
+      // latest turn number should be the same
+    }
+  })
+  send(0)
+}
+
+async function purchaseState(data, send) {
+  const { channelId, blsChallenge, postId } = data
+  const channel = await vars.db.findOne('Channel', {
+    where: {
+      id: channelId,
+    },
+  })
+  if (!channel) {
+    send(`Unable to find channel with id: "${channelId}"`, 1)
+    return
+  }
+  if (channel.latestState?.isFinal === true) {
+    send(`Channel has been finalized`, 1)
+    return
+  }
+  const post = await vars.db.findOne('Post', {
+    where: {
+      id: postId,
+    }
+  })
+  if (!post) {
+    send(`Unable to find post with id: "${postId}"`, 1)
+    return
+  }
+  const newState = {
+    ...channel.latestState,
+    turnNum: channel.latestState.turnNum + 1,
+    outcome: [
+      {
+        asset: ethers.constants.AddressZero,
+        metadata: '0x00',
+        allocations: [
+          {
+            destination: channel.counterparty,
+            amount: +channel.latestState.outcome[0].allocations[0].amount - +post.price,
+            metadata: '0x00',
+          },
+          {
+            destination: vars.keyIndex,
+            amount: +channel.latestState.outcome[0].allocations[1].amount + +post.price,
+            metadata: '0x00',
+          }
+        ]
+      }
+    ],
+  }
+  send(newState)
+}
+
+async function purchasePost(data, send) {
+  const { signature, state, blsChallenge, postId } = data
+  const channelId = getChannelId(state.channel)
+  const existingPurchase = await vars.db.findOne('Purchase', {
+    where: {
+      ownerPublicKey: blsChallenge.publicKey,
+      postId,
+    }
+  })
+  if (existingPurchase) {
+    send('Post already purchased', 1)
+    return
+  }
+  const post = await vars.db.findOne('Post', {
+    where: {
+      id: postId,
+    }
+  })
+  if (!post) {
+    send(`Unable to find post with id: "${postId}"`, 1)
+    return
+  }
+  const channel = await vars.db.findOne('Channel', {
+    where: {
+      id: channelId,
+    },
+  })
+  if (!channel) {
+    send(`Unable to find channel with id: "${channelId}"`, 1)
+    return
+  }
+  if (channel.latestState?.isFinal === true) {
+    send(`Channel has been finalized`, 1)
+    return
+  }
+  if (state.latestTurnNum <= channel.latestTurnNum) {
+    send(`Turn number is not higher than latest known`, 1)
+    return
+  }
+  if (!channel.latestState) {
+    send(`Channel has not been initialized`, 1)
+    return
+  }
+  // also check the L1 balance
+  if (state.outcome[0].allocations.length !== 2) {
+    send('Incorrect number of allocations', 1)
+    return
+  }
+  {
+    const lastAmount = channel.latestState.outcome[0].allocations[1].amount
+    const newAmount = state.outcome[0].allocations[1].amount
+    const paidAmount = +newAmount - +lastAmount
+    if (paidAmount !== +post.price) {
+      send(`Payment amount not correct`, 1)
+      return
+    }
+  }
+  {
+    const lastAmount = channel.latestState.outcome[0].allocations[0].amount
+    const newAmount = state.outcome[0].allocations[0].amount
+    const paidAmount = +lastAmount - +newAmount
+    if (paidAmount !== +post.price) {
+      send(`Payment amount not correct`, 1)
+      return
+    }
+  }
+  if (channel.latestState.outcome[0].allocations[0].destination !== channel.counterparty) {
+    send('Incorrect allocation 0', 1)
+    return
+  }
+  if (channel.latestState.outcome[0].allocations[1].destination !== vars.keyIndex) {
+    send('Incorrect allocation 1', 1)
+    return
+  }
+  // otherwise verify the state signature
+  if (!verifyStateSig(state, signature, deserializeHexArr(blsChallenge.publicKey), vars.signer)) {
+    send(1, 'Signature invalid')
+    return
+  }
+  await vars.db.transaction(db => {
+    db.create('Purchase', {
+      postId,
+      ownerPublicKey: blsChallenge.publicKey,
+      channelId,
+    })
+    db.update('Channel', {
+      where: {
+        id: channelId,
+      },
+      update: {
+        latestTurnNum: state.turnNum,
+        latestState: state,
+        latestCounterSignature: serializeHexArr(signature),
+      }
+    })
+  })
+  send({
+    state,
+    signature: await signState(state, vars.signer)
   })
 }
 
@@ -172,12 +372,12 @@ async function advanceChannel(data, send) {
     update: {
       latestTurnNum: state.turnNum,
       latestState: state,
-      latestCounterSignature: signature,
+      latestCounterSignature: serializeHexArr(signature),
     }
   })
   // now countersign and return
   send({
     state,
-    signature: signState(state, vars.signer)
+    signature: await signState(state, vars.signer)
   })
 }

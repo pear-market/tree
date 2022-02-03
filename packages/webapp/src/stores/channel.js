@@ -1,9 +1,10 @@
-import { getChannelId } from '@pearmarket/bls-statechannels'
+import { getChannelId, signState } from '@pearmarket/bls-statechannels'
 import { ethers } from 'ethers'
 
 export default {
   state: {
     latestState: undefined,
+    latestSignature: undefined,
     balance: 0,
   },
   mutations: {},
@@ -20,33 +21,49 @@ export default {
           counterparty: rootState.contract.keyIndex,
         }
       })
-      if (channel.id) {
-        await commit('logNormal', { append: 'Loading state channel......done' }, { root: true })
-        state.latestState = channel.latestState
-        await dispatch('loadBalance')
-      } else if (channel) {
+      if (channel.needsInitialSig) {
         await commit('logNormal', { remove: 'Loading state channel...' }, { root: true })
-        await dispatch('createChannel', channel.nonce)
+        await commit('logNormal', 'Creating state channel...')
+        // need to countersign
+        const signature = await signState(channel.state, rootState.bls.signer)
+        await dispatch('send', {
+          func: 'channel.create',
+          data: {
+            challenge: rootState.auth.blsChallenge,
+            state: channel.state,
+            signature,
+          }
+        }, { root: true })
+        await commit('logNormal', { append: 'Creating state channel......done'}, { root: true })
       } else {
-        throw new Error('Unexpected reponse')
+        await commit('logNormal', { append: 'Loading state channel......done' }, { root: true })
       }
+      state.latestState = channel.state
+      state.latestSignature = channel.signature
+      await dispatch('loadBalance')
     },
-    createChannel: async ({ state, dispatch, rootState, commit }, nonce) => {
-      if (rootState.contract.keyIndex === -1) {
-        await dispatch('reservePubKeyIndex', null, { root: true })
-      }
-      await commit('logNormal', 'Creating state channel...', { root: true })
-      const { data: { state: _state, signature } } = await dispatch('send', {
-        func: 'channel.create',
+    purchasePost: async ({ state, rootState, dispatch }, { id, price }) => {
+      if (!state.latestState) throw new Error('No channel loaded')
+      const channelId = getChannelId(state.latestState.channel)
+      const { data: nextState } = await dispatch('send', {
+        func: 'post.purchase.state',
         data: {
           challenge: rootState.auth.blsChallenge,
-          counterparty: rootState.contract.keyIndex,
-          nonce,
+          channelId,
+          postId: id,
+        },
+      })
+      // TODO: validate next state to make sure price changes are correct
+      const signature = signState(nextState, rootState.bls.signer)
+      await dispatch('send', {
+        func: 'post.purchase',
+        data: {
+          challenge: rootState.auth.blsChallenge,
+          signature,
+          state: nextState,
+          postId: id,
         }
-      }, { root: true })
-      state.latestState = _state
-      await commit('logNormal', { append: 'Creating state channel......done' }, { root: true })
-      await dispatch('loadBalance')
+      })
     },
     loadBalance: async ({ state, rootState }) => {
       const channelId = getChannelId(state.latestState.channel)

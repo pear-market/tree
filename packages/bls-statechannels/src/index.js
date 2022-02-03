@@ -70,7 +70,7 @@ function messageToHash(message, domain = '') {
   return hex
 }
 
-async function signState(state, blsSigner) {
+function signState(state, blsSigner) {
   const hashedState = hashState(state)
   const signature = blsSigner.sign(hashedState)
   return signature

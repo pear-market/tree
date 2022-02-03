@@ -1,10 +1,11 @@
-const { auth } = require('../middleware/auth')
+const { auth, blsAuth } = require('../middleware/auth')
 
 const vars = {}
 module.exports = (app, _vars) => {
   Object.assign(vars, _vars)
   app.handle('post.create', auth(vars.db), createPost)
   app.handle('post.loadFeed', loadPosts)
+  app.handle('post.load', blsAuth(vars.db), loadFullPost)
 }
 
 async function createPost(data, send) {
@@ -26,5 +27,28 @@ async function loadPosts(data, send) {
       createdAt: 'desc',
     }
   })
-  send(posts)
+  send(posts.map((p) => ({
+    ...p,
+    fullText: '',
+  })))
+}
+
+async function loadFullPost(data, send) {
+  const { postId, blsChallenge } = data
+  const existingPurchase = await vars.db.findOne('Purchase', {
+    where: {
+      ownerPublicKey: blsChallenge.publicKey,
+      postId,
+    }
+  })
+  if (!existingPurchase) {
+    send('Post has not been purchased', 1)
+    return
+  }
+  const post = await vars.db.findOne('Post', {
+    where: {
+      id: postId,
+    }
+  })
+  send(post)
 }
