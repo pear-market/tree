@@ -35,4 +35,10 @@ export default class App extends Vue {
 body {
   margin: 0px;
 }
+.container {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  max-width: 800px;
+}
 </style>

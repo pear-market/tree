@@ -44,7 +44,7 @@ export default {
     },
     purchasePost: async ({ state, rootState, dispatch, commit }, { id, price }) => {
       if (!state.latestState) throw new Error('No channel loaded')
-      commit('logNormal', 'Purchasing post...', { root: true })
+      commit('logNormal', 'Signing purchase...', { root: true })
       const channelId = getChannelId(state.latestState.channel)
       const { data: nextState } = await dispatch('send', {
         func: 'post.purchase.state',
@@ -65,7 +65,7 @@ export default {
           postId: id,
         }
       })
-      commit('logNormal', { append: 'Purchasing post......done' }, { root: true })
+      commit('logNormal', { append: 'Signing purchase......done' }, { root: true })
       commit('ingestPost', post, { root: true })
       state.latestState = nextState
     },

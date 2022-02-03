@@ -1,13 +1,13 @@
 <template>
-  <div>
+  <div class="container">
     <div class="header">
-      <div>Home</div>
-      <div>Pear Node Manager</div>
+      <div>Create Post</div>
     </div>
     <div style="display: flex; flex-direction: column">
-      <TextInput v-model="title" />
-      <textarea v-model="postText" />
-      <TextInput v-model="price" />
+      <TextInput v-model="title" placeholder="Title" />
+      <TextInput v-model="preview" placeholder="Preview text" />
+      <textarea v-model="postText" placeholder="Full text" />
+      <TextInput v-model="price" placeholder="Price (wei)" />
       <Button :onClick="() => click()">Post</Button>
       <Button :onClick="() => $router.push('/')">Cancel</Button>
     </div>
@@ -31,12 +31,14 @@ export default class Create extends Vue {
   title = ''
   postText = ''
   price = ''
+  preview = ''
 
   async click() {
     await this.$store.dispatch('createPost', {
       title: this.title,
       fullText: this.postText,
       price: this.price,
+      preview: this.preview,
     })
     this.$router.push('/')
   }

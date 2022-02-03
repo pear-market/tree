@@ -35,21 +35,21 @@
       "
     >
       <div>
-        <div>State channel</div>
+        <div style="font-weight: bold">State channel</div>
         <div spacer style="height: 8px" />
         <div v-if="$store.state.channel.balance !== undefined">
-          Channel balance: {{ $store.state.channel.balance.toString() }}
+          Channel balance: {{ $store.state.channel.balance.toString() }} wei
         </div>
       </div>
       <div>
         <div>Internal Balances</div>
         <div spacer style="height: 8px" />
         <div v-if="$store.state.channel.balance !== undefined">
-          My balance: {{ $store.state.channel.latestState.outcome[0].allocations[0].amount.toString() }}
+          My balance: {{ $store.state.channel.latestState.outcome[0].allocations[0].amount.toString() }} wei
         </div>
         <div spacer style="height: 8px" />
         <div v-if="$store.state.channel.balance !== undefined">
-          Their balance: {{ $store.state.channel.latestState.outcome[0].allocations[1].amount.toString() }}
+          Server balance: {{ $store.state.channel.latestState.outcome[0].allocations[1].amount.toString() }} wei
         </div>
       </div>
       <Button
@@ -74,10 +74,10 @@
     <div class="post-cell" v-for="post of $store.state.post.postFeed">
       <div style="display: flex; justify-content: space-between">
         <div style="font-size: 18px; font-weight: bold">{{ post.title }}</div>
-        <div>10 seconds ago</div>
+        <div>{{ dayjs(post.createdAt).fromNow() }}</div>
       </div>
       <div>
-        {{ post.fullText }}
+        {{ post.fullText || post.preview }}
       </div>
       <div spacer v-if="!post.purchased" style="height: 8px" />
       <Button v-if="!post.purchased" :onClick="() => viewPost(post)">
@@ -93,6 +93,10 @@ import Component from 'vue-class-component'
 import { Buffer } from 'buffer/'
 import Button from './components/Button'
 import ActivityPanel from './components/ActivityPanel'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 
 @Component({
   name: 'Home',
@@ -102,6 +106,7 @@ import ActivityPanel from './components/ActivityPanel'
   },
 })
 export default class Home extends Vue {
+  dayjs = dayjs
   publicKey = ''
   async mounted() {
     if (!this.$store.state.bls.signer) {
@@ -141,8 +146,7 @@ export default class Home extends Vue {
   }
 
   async deposit() {
-    const tx = await this.$store.dispatch('deposit')
-    console.log(tx)
+    await this.$store.dispatch('deposit')
   }
 }
 </script>
@@ -151,12 +155,6 @@ export default class Home extends Vue {
 .header {
   display: flex;
   justify-content: space-between;
-}
-.container {
-  display: flex;
-  flex-direction: column;
-  margin: auto;
-  max-width: 800px;
 }
 .post-cell {
   border: 1px solid black;

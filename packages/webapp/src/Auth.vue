@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; flex-direction: column">
+  <div class="container" style="align-items: center">
     <div>
       <input type="text" placeholder="username" v-model="username" />
     </div>
