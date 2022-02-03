@@ -96,9 +96,7 @@
         <div style="font-size: 18px; font-weight: bold">{{ post.title }}</div>
         <div>{{ dayjs(post.createdAt).fromNow() }}</div>
       </div>
-      <div>
-        {{ post.fullText || post.preview }}
-      </div>
+      <div v-html="markdown.render(post.fullText || post.preview)" />
       <div spacer v-if="!post.purchased" style="height: 8px" />
       <Button v-if="!post.purchased" :onClick="() => viewPost(post)">
         View Post ({{ post.price }} wei)
@@ -115,6 +113,12 @@ import Button from './components/Button'
 import ActivityPanel from './components/ActivityPanel'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import MarkdownIt from 'markdown-it'
+
+const markdown = new MarkdownIt({
+  html: true,
+  linkify: true,
+})
 
 dayjs.extend(relativeTime)
 
@@ -126,6 +130,7 @@ dayjs.extend(relativeTime)
   },
 })
 export default class Home extends Vue {
+  markdown = markdown
   dayjs = dayjs
   publicKey = ''
   async mounted() {
