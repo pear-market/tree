@@ -10,16 +10,16 @@ export default {
   },
   mutations: {},
   actions: {
-    init: async ({ dispatch }) => {
-      await dispatch('connect')
-    },
     connect: async ({ state }) => {
       if (state.client) return
       const client = new especial(state.url)
       state.client = client
       await client.connect()
     },
-    send: async ({ state, rootState }, { func, data }) => {
+    send: async ({ state, rootState, dispatch }, { func, data }) => {
+      if (!state.client) {
+        await dispatch('connect')
+      }
       if (!state.client || !state.client.connected)
         throw new Error('Client is not connected')
       const { token } = rootState.auth.auth || {}
