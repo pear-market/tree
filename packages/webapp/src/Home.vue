@@ -91,17 +91,11 @@
     >
     <!-- <Button v-if="!$store.state.auth.blsChallengeSig" :onClick="() => authBLS()">Auth BLS</Button> -->
     <div spacer style="height: 8px" />
-    <div class="post-cell" v-for="post of $store.state.post.postFeed">
-      <div style="display: flex; justify-content: space-between">
-        <div style="font-size: 18px; font-weight: bold">{{ post.title }}</div>
-        <div>{{ dayjs(post.createdAt).fromNow() }}</div>
-      </div>
-      <div v-html="markdown.render(post.fullText || post.preview)" />
-      <div spacer v-if="!post.purchased" style="height: 8px" />
-      <Button v-if="!post.purchased" :onClick="() => viewPost(post)">
-        View Post ({{ post.price }} wei)
-      </Button>
-    </div>
+    <PostCell
+      v-for="post of $store.state.post.postFeed"
+      :post="post"
+      :key="post.id"
+    />
   </div>
 </template>
 
@@ -111,27 +105,17 @@ import Component from 'vue-class-component'
 import { Buffer } from 'buffer/'
 import Button from './components/Button'
 import ActivityPanel from './components/ActivityPanel'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import MarkdownIt from 'markdown-it'
-
-const markdown = new MarkdownIt({
-  html: true,
-  linkify: true,
-})
-
-dayjs.extend(relativeTime)
+import BurnButton from './components/BurnButton'
+import PostCell from './components/PostCell'
 
 @Component({
   name: 'Home',
-  components: { Button, ActivityPanel },
+  components: { Button, ActivityPanel, BurnButton, PostCell },
   metaInfo: {
     title: 'Pear Tree',
   },
 })
 export default class Home extends Vue {
-  markdown = markdown
-  dayjs = dayjs
   publicKey = ''
   async mounted() {
     if (!this.$store.state.bls.signer) {
@@ -166,10 +150,6 @@ export default class Home extends Vue {
     )
   }
 
-  async viewPost(post) {
-    await this.$store.dispatch('purchasePost', post)
-  }
-
   async deposit() {
     await this.$store.dispatch('deposit')
   }
@@ -180,11 +160,6 @@ export default class Home extends Vue {
 .header {
   display: flex;
   justify-content: space-between;
-}
-.post-cell {
-  border: 1px solid black;
-  padding: 4px;
-  margin: 2px 0px;
 }
 .silent-link {
   background: rgba(0, 0, 0, 0.02);

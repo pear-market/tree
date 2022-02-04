@@ -326,6 +326,10 @@ async function purchasePost(data, send) {
     send(`Unable to find channel with id: "${channelId}"`, 1)
     return
   }
+  if (!channel.isFunded) {
+    send(`Channel is not funded`, 1)
+    return
+  }
   if (channel.latestState?.isFinal === true) {
     send(`Channel has been finalized`, 1)
     return

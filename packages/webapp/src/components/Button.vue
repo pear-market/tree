@@ -43,10 +43,10 @@ export default class Button extends Vue {
     } catch (err) {
       this.loading = false
       this.errored = true
-      console.log('Uncaught button handler error', err)
       if (err.toString().startsWith('Error: Button: ')) {
         this.errorMessage = err.toString().replace('Error: Button: ', '')
       } else {
+        console.log('Uncaught button handler error', err)
         this.errorMessage = 'There was a problem'
       }
       setTimeout(() => {
