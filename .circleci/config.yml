@@ -27,4 +27,4 @@ jobs:
           command: npm ci
       - run:
           name: Test
-          command: npm run test -- --scope=@pearmarket/bls-statechannel
+          command: npm run test -- --scope=@pearmarket/bls-statechannels

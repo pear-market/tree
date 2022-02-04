@@ -1,4 +1,4 @@
-# pear market
+# pear market [![CircleCI](https://img.shields.io/circleci/build/github/pear-market/tree/main)](https://app.circleci.com/pipelines/github/pear-market/tree?branch=main&filter=all)
 
 Micropayments for markdown writing using BLS signatures and state channels.
 
