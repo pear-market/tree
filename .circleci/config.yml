@@ -2,8 +2,8 @@ version: 2.1
 workflows:
   test_app:
     jobs:
-      - lint:
-      - test_contracts:
+      - lint
+      - test_contracts
 
 jobs:
   lint:
