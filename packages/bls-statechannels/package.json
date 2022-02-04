@@ -21,9 +21,11 @@
     "url": "https://github.com/pear-market/tree/issues"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
     "@openzeppelin/contracts": "^3.4.2",
     "@statechannels/nitro-protocol": "^0.17.3",
+    "ethereum-waffle": "^3.4.0",
     "hardhat": "^2.8.3"
   },
   "dependencies": {
