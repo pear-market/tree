@@ -16,7 +16,7 @@
   "scripts": {
     "start": "webpack-dev-server",
     "build": "webpack --config webpack.prod.js --progress",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "exit 0"
   },
   "dependencies": {
     "@pearmarket/bls-statechannels": "*",
