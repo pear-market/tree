@@ -71,10 +71,6 @@ function messageToHash(message, domain = DOMAIN) {
   const domainHex = domain.startsWith('0x')
     ? Buffer.from(domain.slice(2), 'hex')
     : Buffer.from(sha256(domain), 'hex')
-  console.log('ocmessage')
-  console.log(BigNumber.from(message).toString())
-  console.log('ocdomain')
-  console.log(BigNumber.from(domain).toString())
   const point = mcl.hashToPoint(message, domainHex)
   const hex = mcl.g1ToHex(point)
   return hex

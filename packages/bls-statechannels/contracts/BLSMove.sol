@@ -443,11 +443,12 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     }
   }
 
-  function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory b) {
+  function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory) {
+    bytes memory b = new bytes(32);
     assembly {
-      mstore(b, 32) // set the length of the bytes to 32
       mstore(add(b, 32), input) // set the bytes data
     }
+    return b;
   }
 
   function _acceptableWhoSignedWhat(

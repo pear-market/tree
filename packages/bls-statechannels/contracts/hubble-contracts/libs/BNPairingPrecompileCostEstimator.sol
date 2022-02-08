@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
-contract BNPairingPrecompileCostEstimator {
-    uint256 public baseCost;
-    uint256 public perPairCost;
+library BNPairingPrecompileCostEstimator {
+    // uint256 public baseCost;
+    // uint256 public perPairCost;
 
     // G1 Generator
     uint256 private constant G1_X = 1;
@@ -25,20 +25,24 @@ contract BNPairingPrecompileCostEstimator {
     // prettier-ignore
     uint256 private constant N_G2_Y1 = 17805874995975841540914202342111839520379459829704422454583296818431106115052;
 
-    function run() external {
-        _run();
-    }
+    // function run() external {
+    //     _run();
+    // }
 
     function getGasCost(uint256 pairCount) external view returns (uint256) {
+        uint256 gasCost1Pair = _gasCost1Pair();
+        uint256 gasCost2Pair = _gasCost2Pair();
+        uint perPairCost = gasCost2Pair - gasCost1Pair;
+        uint baseCost = gasCost1Pair - perPairCost;
         return pairCount * perPairCost + baseCost;
     }
 
-    function _run() internal {
-        uint256 gasCost1Pair = _gasCost1Pair();
-        uint256 gasCost2Pair = _gasCost2Pair();
-        perPairCost = gasCost2Pair - gasCost1Pair;
-        baseCost = gasCost1Pair - perPairCost;
-    }
+    // function _run() internal {
+    //     uint256 gasCost1Pair = _gasCost1Pair();
+    //     uint256 gasCost2Pair = _gasCost2Pair();
+    //     perPairCost = gasCost2Pair - gasCost1Pair;
+    //     baseCost = gasCost1Pair - perPairCost;
+    // }
 
     function _gasCost1Pair() internal view returns (uint256) {
         uint256[6] memory input = [G1_X, G1_Y, G2_X1, G2_X0, G2_Y1, G2_Y0];
