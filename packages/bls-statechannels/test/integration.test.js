@@ -10,6 +10,7 @@ const {
   hashAppPart,
   hashOutcome,
   DOMAIN,
+  aggregate,
 } = require('../src')
 const assert = require('assert')
 
@@ -39,8 +40,9 @@ async function getDeployedContracts() {
 describe('state channels', () => {
   describe('checkpoint conclude', () => {
     it('signs a state and creates a checkpoint then concludes', async () => {
+      const { chainId } = await ethers.provider.getNetwork()
       const [user] = await ethers.getSigners()
-      const { blsMove, blsOpen } = await getDeployedContracts()
+      const { blsMove } = await getDeployedContracts()
       const wallet = await randomSigner(DOMAIN)
       {
         // register the signer
@@ -49,7 +51,7 @@ describe('state channels', () => {
       }
       const state = {
         channel: {
-          chainId: '0x1',
+          chainId,
           nonce: 0x01,
           participants: [1],
         },
@@ -60,7 +62,8 @@ describe('state channels', () => {
       }
       {
         const signedState = await signState(state, wallet)
-        const message = messageToHash(hashState(state), DOMAIN)
+        const message = messageToHash(hashState(state))
+        // console.log(message.map(m => ethers.BigNumber.from(m).toString()))
         const tx = await blsMove
           .connect(user)
           .checkpoint(
@@ -79,7 +82,7 @@ describe('state channels', () => {
       }
       const finalState = {
         channel: {
-          chainId: '0x1',
+          chainId,
           nonce: 0x01,
           participants: [1],
         },
@@ -107,6 +110,91 @@ describe('state channels', () => {
               messages: [message],
             }
           )
+        await tx.wait()
+      }
+    })
+    it('should multiconclude', async () => {
+      const { chainId } = await ethers.provider.getNetwork()
+      const [user1, user2] = await ethers.getSigners()
+      const { blsMove } = await getDeployedContracts()
+      const wallet1 = await randomSigner(DOMAIN)
+      const wallet2 = await randomSigner(DOMAIN)
+      // register the signers
+      {
+        const tx = await blsMove
+          .connect(user1)
+          .registerPublicKey(wallet1.pubkey)
+        await tx.wait()
+      }
+      {
+        const tx = await blsMove
+          .connect(user2)
+          .registerPublicKey(wallet2.pubkey)
+        await tx.wait()
+      }
+      const state = {
+        channel: {
+          chainId,
+          nonce: 0x01,
+          participants: [1, 2],
+        },
+        outcome: [],
+        turnNum: 1,
+        isFinal: false,
+        appData: '0x00',
+      }
+      {
+        const signedState1 = await signState(state, wallet1)
+        const signedState2 = await signState(state, wallet2)
+        const signature = aggregate([signedState1, signedState2])
+        const message = messageToHash(hashState(state), DOMAIN)
+        const tx = await blsMove
+          .connect(user1)
+          .checkpoint(
+            getFixedPart(state),
+            1,
+            [getVariablePart(state)],
+            0,
+            [0, 0],
+            {
+              sig: signature,
+              pubKeys: [1, 2],
+              messages: [message, message],
+            }
+          )
+        await tx.wait()
+      }
+      const finalState = {
+        channel: {
+          chainId,
+          nonce: 0x01,
+          participants: [1, 2],
+        },
+        outcome: [],
+        turnNum: 2 ** 48 - 21,
+        isFinal: true,
+        appData: '0x00',
+      }
+      {
+        const signedState1 = await signState(finalState, wallet1)
+        const signedState2 = await signState(finalState, wallet1)
+        const signature = aggregate([signedState1, signedState2])
+        const message = messageToHash(hashState(finalState), DOMAIN)
+        const tx = await blsMove.connect(user1).multiConclude(
+          [
+            {
+              ...getFixedPart(finalState),
+              chainId: undefined,
+            },
+          ],
+          hashAppPart(finalState),
+          [hashOutcome(finalState.outcome)],
+          {
+            sig: signature,
+            pubKeys: [1, 2],
+            messages: [message, message],
+          }
+        )
         await tx.wait()
       }
     })

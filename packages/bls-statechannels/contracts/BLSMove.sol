@@ -5,7 +5,9 @@ import { IBLSMove } from "./interfaces/IBLSMove.sol";
 import { IBLSMoveApp } from "./interfaces/IBLSMoveApp.sol";
 import "./BLSKeyCache.sol";
 import "./StatusManager.sol";
-import { BLSOpen } from "./BLS.sol";
+import { BLSOpen } from './BLSOpen.sol';
+
+import "hardhat/console.sol";
 
 contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
 
@@ -95,7 +97,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
-    IBLSMove.Signature calldata sigs // supply a single sig for all
+    IBLSMove.MultiSignature calldata sigs // supply a single sig for all
   ) external override {
     _multiConclude(
       fixedParts,
@@ -105,13 +107,78 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     );
   }
 
+  // Each channel state should have turnNum 2^48-1 (max uint48).
+  // Signatures should be ordered by participant, then by channel
+  // app part hash should be a constant value for all channels
+  // TODO: remove appPartHash as a varaible in this function
   function _multiConclude(
     IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
-    bytes32[] calldata outcomeHash,
-    IBLSMove.Signature calldata sigs // supply a single sig for all
+    bytes32[] calldata outcomeHashes,
+    IBLSMove.MultiSignature calldata sigs // supply a single sig for all
   ) internal {
-    // TODO
+    require(fixedParts.length < type(uint48).max);
+    require(sigs.messages.length == fixedParts.length * 2);
+    // uint chainId = getChainID();
+    uint48 largestTurnNum = type(uint48).max;
+    uint[4][] memory pubkeys = new uint[4][](fixedParts.length * 2);
+    uint[2][] memory messages = new uint[2][](fixedParts.length);
+    for (uint48 x = 0; x < fixedParts.length; x++) {
+      IBLSMove.MinFixedPart memory fixedPart = fixedParts[x];
+      bytes32 channelId = _getChannelId(fixedPart.participants, fixedPart.nonce);
+      bytes32 outcomeHash = outcomeHashes[x];
+      _requireChannelNotFinalized(channelId);
+      bytes32 stateHash = keccak256(
+        abi.encode(
+          IBLSMove.State(
+            largestTurnNum,
+            true, // is final
+            channelId,
+            appPartHash,
+            outcomeHash
+          )
+        )
+      );
+      uint48 sigOffset = x * 2;
+      for (uint8 i = 0; i < fixedPart.participants.length; i++) {
+        require(fixedPart.participants[i] == sigs.pubKeys[sigOffset + i]);
+        uint[4] memory pubkey = publicKeys[sigs.pubKeys[sigOffset + i]];
+        require(
+          pubkey[0] != 0 &&
+          pubkey[1] != 0 &&
+          pubkey[2] != 0 &&
+          pubkey[3] != 0,
+          "pubkey not found"
+        );
+        pubkeys[sigOffset + i] = pubkey;
+      }
+
+      uint[2] memory message = BLSOpen.hashToPoint(
+        domain,
+        bytes32ToBytes(stateHash)
+      );
+      messages[x] = message;
+      // this check may be unnecessary
+      require(
+        sigs.messages[sigOffset][0] == messages[x][0] &&
+        sigs.messages[sigOffset][1] == messages[x][1] &&
+        sigs.messages[sigOffset + 1][0] == messages[x][0] &&
+        sigs.messages[sigOffset + 1][1] == messages[x][1],
+        'message mismatch'
+      );
+
+      // optimistically set these here, rollback later if sigs are bad
+      statusOf[channelId] = _generateStatus(
+        ChannelData(0, uint48(block.timestamp), bytes32(0), outcomeHash)
+      );
+      emit Concluded(channelId, uint48(block.timestamp));
+    }
+    // now verify the bls sigs
+    require(BLSOpen.verifyMultiple(
+      sigs.sig,
+      pubkeys,
+      sigs.messages
+    ));
   }
 
   function conclude(
@@ -370,10 +437,16 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     );
   }
 
-  function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory) {
+  function bytesToBytes32(bytes memory b) private pure returns (bytes32 bb) {
     assembly {
-      mstore(0x0, input)
-      return(0x0, 32)
+      bb := mload(add(b, 32))
+    }
+  }
+
+  function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory b) {
+    assembly {
+      mstore(b, 32) // set the length of the bytes to 32
+      mstore(add(b, 32), input) // set the bytes data
     }
   }
 
@@ -436,8 +509,6 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
           channelId,
           keccak256(
             abi.encode(
-              challengeDuration,
-              appDefinition,
               appData
             )
           ),

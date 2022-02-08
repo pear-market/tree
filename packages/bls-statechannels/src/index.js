@@ -1,4 +1,5 @@
 const { signer, mcl } = require('@thehubbleproject/bls')
+const { BigNumber } = require('ethers')
 const crypto = require('crypto')
 const sha256 = require('js-sha256')
 const { utils } = require('ethers')
@@ -25,6 +26,7 @@ module.exports = {
   serializeHexArr,
   deserializeHexArr,
   verifyStateSig,
+  aggregate: (signatures) => signer.aggregate(signatures),
 }
 
 function serializeHexArr(hexArr) {
@@ -65,8 +67,14 @@ async function randomSigner(domain = DOMAIN) {
   return factory.getSigner(domainHex, `0x${rand.toString('hex')}`)
 }
 
-function messageToHash(message, domain = '') {
-  const domainHex = Buffer.from(sha256(domain), 'hex')
+function messageToHash(message, domain = DOMAIN) {
+  const domainHex = domain.startsWith('0x')
+    ? Buffer.from(domain.slice(2), 'hex')
+    : Buffer.from(sha256(domain), 'hex')
+  console.log('ocmessage')
+  console.log(BigNumber.from(message).toString())
+  console.log('ocdomain')
+  console.log(BigNumber.from(domain).toString())
   const point = mcl.hashToPoint(message, domainHex)
   const hex = mcl.g1ToHex(point)
   return hex
