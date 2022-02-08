@@ -181,15 +181,15 @@ describe('state channels', () => {
           participants: [1, 2],
         },
         outcome: [],
-        turnNum: 2 ** 48 - 21,
+        turnNum: 2 ** 48 - 1,
         isFinal: true,
         appData: '0x00',
       }
       {
         const signedState1 = await signState(finalState, wallet1)
-        const signedState2 = await signState(finalState, wallet1)
+        const signedState2 = await signState(finalState, wallet2)
         const signature = aggregate([signedState1, signedState2])
-        const message = messageToHash(hashState(finalState), DOMAIN)
+        const message = messageToHash(hashState(finalState))
         const tx = await blsMove.connect(user1).multiConclude(
           [
             {
