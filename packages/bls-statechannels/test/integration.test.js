@@ -196,7 +196,6 @@ describe('state channels', () => {
               chainId: undefined,
             },
           ],
-          hashAppPart(finalState),
           [hashOutcome(finalState.outcome)],
           signature
         )

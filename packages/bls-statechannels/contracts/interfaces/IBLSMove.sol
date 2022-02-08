@@ -89,8 +89,7 @@ interface IBLSMove {
   // Conclude many channels where all participants have agreed
   // go through each channel and make sure that its participants are included in the Signature
   function multiConclude(
-    IBLSMove.MinFixedPart[] calldata fixedParts,
-    bytes32 appPartHash, // the app data hash should be the same
+    IBLSMove.MinFixedPart[] memory fixedParts,
     bytes32[] calldata outcomeHash,
     uint[2] calldata signature
   ) external;

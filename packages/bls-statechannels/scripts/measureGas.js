@@ -87,6 +87,7 @@ async function multiConclude(channelCount = 10) {
       messages.push(message, message)
       fixedParts.push({
         ...getFixedPart(finalState),
+        participants: [participant2],
         chainId: undefined,
       })
       outcomeHashes.push(hashOutcome(finalState.outcome))
@@ -98,7 +99,7 @@ async function multiConclude(channelCount = 10) {
     const signature = aggregate(signatures)
     const tx = await blsMove
       .connect(user1)
-      .multiConclude(fixedParts, appHash, outcomeHashes, signature)
+      .multiConcludeSingleParty(1, fixedParts, outcomeHashes, signature)
     await tx.wait()
   }
 }

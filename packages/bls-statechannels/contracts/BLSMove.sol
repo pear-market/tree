@@ -14,11 +14,13 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   address immutable appDefinition;
   uint48 immutable challengeDuration;
   bytes32 immutable domain;
+  bytes32 immutable finalAppPartHash;
 
   constructor(address _appDefintion, uint48 _challengeDuration, bytes32 _domain) {
     appDefinition = _appDefintion;
     challengeDuration = _challengeDuration;
     domain = _domain;
+    finalAppPartHash = keccak256(abi.encode(new bytes(1)));
   }
 
   function challenge(
@@ -95,13 +97,34 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   // the largestTurnNum should be the same for all channels, something like type(uint48).max
   function multiConclude(
     IBLSMove.MinFixedPart[] calldata fixedParts,
-    bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
     uint[2] calldata signature
   ) external override {
     _multiConclude(
       fixedParts,
-      appPartHash,
+      outcomeHash,
+      signature
+    );
+  }
+
+  function multiConcludeSingleParty(
+    uint48 singleParty,
+    IBLSMove.MinFixedPart[] calldata fixedParts,
+    bytes32[] calldata outcomeHash,
+    uint[2] calldata signature
+  ) external {
+    IBLSMove.MinFixedPart[] memory finalParts = new IBLSMove.MinFixedPart[](fixedParts.length);
+    for (uint48 x = 0; x < fixedParts.length; x++) {
+      uint48[] memory participants = new uint48[](2);
+      participants[0] = singleParty;
+      participants[1] = fixedParts[x].participants[0];
+      finalParts[x] = IBLSMove.MinFixedPart({
+        participants: participants,
+        nonce: fixedParts[x].nonce
+      });
+    }
+    _multiConclude(
+      finalParts,
       outcomeHash,
       signature
     );
@@ -112,8 +135,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   // app part hash should be a constant value for all channels
   // TODO: remove appPartHash as a varaible in this function
   function _multiConclude(
-    IBLSMove.MinFixedPart[] calldata fixedParts,
-    bytes32 appPartHash, // the app data hash should be the same
+    IBLSMove.MinFixedPart[] memory fixedParts,
     bytes32[] calldata outcomeHashes,
     uint[2] calldata signature
   ) internal {
@@ -133,7 +155,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
             largestTurnNum,
             true, // is final
             channelId,
-            appPartHash,
+            finalAppPartHash,
             outcomeHash
           )
         )
