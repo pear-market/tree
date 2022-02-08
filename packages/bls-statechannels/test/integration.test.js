@@ -189,7 +189,6 @@ describe('state channels', () => {
         const signedState1 = await signState(finalState, wallet1)
         const signedState2 = await signState(finalState, wallet2)
         const signature = aggregate([signedState1, signedState2])
-        const message = messageToHash(hashState(finalState))
         const tx = await blsMove.connect(user1).multiConclude(
           [
             {
@@ -199,11 +198,7 @@ describe('state channels', () => {
           ],
           hashAppPart(finalState),
           [hashOutcome(finalState.outcome)],
-          {
-            sig: signature,
-            pubKeys: [1, 2],
-            messages: [message, message],
-          }
+          signature
         )
         await tx.wait()
       }

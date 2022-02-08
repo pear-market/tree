@@ -97,13 +97,13 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
-    IBLSMove.MultiSignature calldata sigs // supply a single sig for all
+    uint[2] calldata signature
   ) external override {
     _multiConclude(
       fixedParts,
       appPartHash,
       outcomeHash,
-      sigs
+      signature
     );
   }
 
@@ -115,14 +115,13 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHashes,
-    IBLSMove.MultiSignature calldata sigs // supply a single sig for all
+    uint[2] calldata signature
   ) internal {
     require(fixedParts.length < type(uint48).max);
-    require(sigs.messages.length == fixedParts.length * 2);
     // uint chainId = getChainID();
     uint48 largestTurnNum = type(uint48).max;
     uint[4][] memory pubkeys = new uint[4][](fixedParts.length * 2);
-    uint[2][] memory messages = new uint[2][](fixedParts.length);
+    uint[2][] memory messages = new uint[2][](fixedParts.length * 2);
     for (uint48 x = 0; x < fixedParts.length; x++) {
       IBLSMove.MinFixedPart memory fixedPart = fixedParts[x];
       bytes32 channelId = _getChannelId(fixedPart.participants, fixedPart.nonce);
@@ -141,8 +140,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
       );
       uint48 sigOffset = x * 2;
       for (uint8 i = 0; i < fixedPart.participants.length; i++) {
-        require(fixedPart.participants[i] == sigs.pubKeys[sigOffset + i]);
-        uint[4] memory pubkey = publicKeys[sigs.pubKeys[sigOffset + i]];
+        uint[4] memory pubkey = publicKeys[fixedPart.participants[i]];
         require(
           pubkey[0] != 0 &&
           pubkey[1] != 0 &&
@@ -157,15 +155,8 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
         domain,
         bytes32ToBytes(stateHash)
       );
-      messages[x] = message;
-      // this check may be unnecessary
-      require(
-        sigs.messages[sigOffset][0] == messages[x][0] &&
-        sigs.messages[sigOffset][1] == messages[x][1] &&
-        sigs.messages[sigOffset + 1][0] == messages[x][0] &&
-        sigs.messages[sigOffset + 1][1] == messages[x][1],
-        'message mismatch'
-      );
+      messages[sigOffset] = message;
+      messages[sigOffset + 1] = message;
 
       // optimistically set these here, rollback later if sigs are bad
       statusOf[channelId] = _generateStatus(
@@ -175,9 +166,9 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
     }
     // now verify the bls sigs
     require(BLSOpen.verifyMultiple(
-      sigs.sig,
+      signature,
       pubkeys,
-      sigs.messages
+      messages
     ));
   }
 
@@ -446,6 +437,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   function bytes32ToBytes(bytes32 input) internal pure returns (bytes memory) {
     bytes memory b = new bytes(32);
     assembly {
+      // mstore(b, 32) // set the length of the bytes to 32
       mstore(add(b, 32), input) // set the bytes data
     }
     return b;

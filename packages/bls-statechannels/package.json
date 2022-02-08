@@ -15,6 +15,8 @@
     "build": "hardhat compile",
     "abi": "node scripts/abi",
     "deploy:goerli": "hardhat run scripts/deploy.js --network goerli",
+    "deploy:optimism": "hardhat run scripts/deploy.js --network optimism",
+    "measure": "hardhat run scripts/measureGas.js --network optimism",
     "test": "hardhat test"
   },
   "bugs": {

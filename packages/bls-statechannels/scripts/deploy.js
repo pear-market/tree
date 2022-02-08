@@ -7,11 +7,21 @@ async function main() {
   const cache = await BLSKeyCache.deploy()
   await cache.deployed()
 
+  const BLSEstimator = await ethers.getContractFactory(
+    'BNPairingPrecompileCostEstimator'
+  )
+  const blsEstimator = await BLSEstimator.deploy()
+  await blsEstimator.deployed()
+
   const BLSMoveApp = await ethers.getContractFactory('BLSMoveApp')
   const blsMoveApp = await BLSMoveApp.deploy()
   await blsMoveApp.deployed()
 
-  const BLSOpen = await ethers.getContractFactory('BLSOpen')
+  const BLSOpen = await ethers.getContractFactory('BLSOpen', {
+    libraries: {
+      BNPairingPrecompileCostEstimator: blsEstimator.address,
+    },
+  })
   const blsOpen = await BLSOpen.deploy()
   await blsOpen.deployed()
 

@@ -92,7 +92,7 @@ interface IBLSMove {
     IBLSMove.MinFixedPart[] calldata fixedParts,
     bytes32 appPartHash, // the app data hash should be the same
     bytes32[] calldata outcomeHash,
-    IBLSMove.MultiSignature calldata sigs // supply a single sig for all
+    uint[2] calldata signature
   ) external;
 
   /**
