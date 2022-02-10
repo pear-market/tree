@@ -5,8 +5,19 @@ import { BLSMove } from "./BLSMove.sol";
 import { IBLSMove } from "./interfaces/IBLSMove.sol";
 import { AssetHolder } from "./AssetHolder.sol";
 import { OutcomeFormat } from "./Outcome.sol";
+import { IReceiver } from "./interfaces/IDecompressReceiver.sol";
 
-contract Adjudicator is BLSMove, AssetHolder {
+import "hardhat/console.sol";
+
+contract Adjudicator is BLSMove, AssetHolder, IReceiver {
+
+  struct MultiConcludeWithdraw {
+    uint48 singleParty;
+    IBLSMove.MinFixedPart[] fixedParts;
+    bytes[] outcomeBytes;
+    uint[2] signature;
+  }
+
   constructor(address _appDefintion, uint48 _challengeDuration, bytes32 _domain) BLSMove(_appDefintion, _challengeDuration, _domain) {}
 
   // assume we're depositing ether
@@ -116,5 +127,26 @@ contract Adjudicator is BLSMove, AssetHolder {
     _requireMatchingFingerprint(stateHash, keccak256(outcomeBytes), channelId);
 
 
+  }
+
+  function callMethod(bytes memory data) external override {
+    IReceiver.Data memory d = abi.decode(data, (IReceiver.Data));
+    console.log('asfasf');
+    if (d.method == uint8(0)) {
+      MultiConcludeWithdraw memory decoded = abi.decode(d.data, (MultiConcludeWithdraw));
+      console.log(decoded.singleParty);
+      console.log(decoded.fixedParts.length);
+      console.log(decoded.outcomeBytes.length);
+      console.log(decoded.signature[0]);
+      console.log(decoded.signature[1]);
+      this.multiConcludeWithdrawSingleParty(
+        decoded.singleParty,
+        decoded.fixedParts,
+        decoded.outcomeBytes,
+        decoded.signature
+      );
+    } else {
+      revert('unknown method');
+    }
   }
 }
