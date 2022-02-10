@@ -25,12 +25,31 @@ contract Adjudicator is BLSMove, AssetHolder {
     );
   }
 
-  function multiConcludeWithdraw(
+  function multiConcludeWithdrawSingleParty(
+    uint48 singleParty,
     IBLSMove.MinFixedPart[] calldata fixedParts,
+    bytes[] memory outcomeBytes,
+    uint[2] calldata signature
+  ) public {
+    IBLSMove.MinFixedPart[] memory finalParts = new IBLSMove.MinFixedPart[](fixedParts.length);
+    for (uint48 x = 0; x < fixedParts.length; x++) {
+      uint48[] memory participants = new uint48[](2);
+      participants[0] = singleParty;
+      participants[1] = fixedParts[x].participants[0];
+      finalParts[x] = IBLSMove.MinFixedPart({
+        participants: participants,
+        nonce: fixedParts[x].nonce
+      });
+    }
+    multiConcludeWithdraw(finalParts, outcomeBytes, signature);
+  }
+
+  function multiConcludeWithdraw(
+    IBLSMove.MinFixedPart[] memory fixedParts,
     bytes[] memory outcomeBytes,
     // OutcomeFormat.Outcome[] calldata outcomes,
     uint[2] calldata signature
-  ) external {
+  ) public {
     require(fixedParts.length == outcomeBytes.length);
     // construct the outcome hashes from the outcomes
     bytes32[] memory outcomeHashes = new bytes32[](outcomeBytes.length);
@@ -53,7 +72,6 @@ contract Adjudicator is BLSMove, AssetHolder {
     uint[] memory totalPayouts = new uint[](totalExits);
     uint48 totalPayoutIndex = 0;
     for (uint48 x = 0; x < outcomes.length; x++) {
-      // initialHoldings[x] = new Exit();
       // for each outcome
       bytes32 channelId = _getChannelId(fixedParts[x].participants, fixedParts[x].nonce);
       OutcomeFormat.Outcome[] memory outcome = outcomes[x];

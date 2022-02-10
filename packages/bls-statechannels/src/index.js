@@ -26,6 +26,8 @@ module.exports = {
   serializeHexArr,
   deserializeHexArr,
   verifyStateSig,
+  encodeOutcome,
+  decodeOutcome,
   aggregate: (signatures) => signer.aggregate(signatures),
 }
 
