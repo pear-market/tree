@@ -110,7 +110,7 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   function multiConcludeSingleParty(
     uint48 singleParty,
     IBLSMove.MinFixedPart[] calldata fixedParts,
-    bytes32[] calldata outcomeHash,
+    bytes32[] memory outcomeHash,
     uint[2] calldata signature
   ) external {
     IBLSMove.MinFixedPart[] memory finalParts = new IBLSMove.MinFixedPart[](fixedParts.length);
@@ -133,10 +133,9 @@ contract BLSMove is IBLSMove, BLSKeyCache, StatusManager {
   // Each channel state should have turnNum 2^48-1 (max uint48).
   // Signatures should be ordered by participant, then by channel
   // app part hash should be a constant value for all channels
-  // TODO: remove appPartHash as a varaible in this function
   function _multiConclude(
     IBLSMove.MinFixedPart[] memory fixedParts,
-    bytes32[] calldata outcomeHashes,
+    bytes32[] memory outcomeHashes,
     uint[2] calldata signature
   ) internal {
     require(fixedParts.length < type(uint48).max);

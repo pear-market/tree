@@ -90,7 +90,7 @@ interface IBLSMove {
   // go through each channel and make sure that its participants are included in the Signature
   function multiConclude(
     IBLSMove.MinFixedPart[] memory fixedParts,
-    bytes32[] calldata outcomeHash,
+    bytes32[] memory outcomeHash,
     uint[2] calldata signature
   ) external;
 

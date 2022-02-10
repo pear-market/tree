@@ -45,7 +45,7 @@ async function getDeployedContracts() {
   return { blsMove, blsOpen, cache }
 }
 
-async function multiConclude(channelCount = 10) {
+async function multiConclude(channelCount = 5) {
   const { chainId } = await ethers.provider.getNetwork()
   const [user1] = await ethers.getSigners()
   const { blsMove } = await getDeployedContracts()

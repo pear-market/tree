@@ -107,7 +107,7 @@ const outcomeFormat = {
       type: 'tuple[]',
       name: 'allocations',
       components: [
-        { name: 'destination', type: 'uint48' },
+        { name: 'destination', type: 'bytes32' },
         { name: 'amount', type: 'uint256' },
         { name: 'metadata', type: 'bytes' },
       ],
