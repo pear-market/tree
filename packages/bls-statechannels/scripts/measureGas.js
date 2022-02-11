@@ -20,6 +20,8 @@ const CONFIG = {
   compress: true,
 }
 // 10 withdrawals: https://kovan-optimistic.etherscan.io/tx/0xfb98203db11f873534c4de94de8271a4a1ef2ce614468abfb44f0680592e6edb
+// 10 withdrawals with compression: https://kovan-optimistic.etherscan.io/tx/0x106e0fe75e8a9f77355a430bc3461a0665663cadcf00db2371643e029f6ecb7c
+// 20 withdrawals with compression: https://kovan-optimistic.etherscan.io/tx/0x613e6f76646caa68bfdad7c905ae78bad24ac8d2c89c4635f7f501d32724ae5f
 
 async function getDeployedContracts() {
   const BLSKeyCache = await ethers.getContractFactory('BLSKeyCache')
@@ -67,7 +69,7 @@ function convertAddressToBytes32(address) {
   return ethers.utils.hexZeroPad(normalizedAddress, 32)
 }
 
-async function main(channelCount = 5) {
+async function main(channelCount = 20) {
   const { chainId } = await ethers.provider.getNetwork()
   const [user1] = await ethers.getSigners()
   const { blsMove, decompressor } = await getDeployedContracts()

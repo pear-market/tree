@@ -38,16 +38,6 @@ contract Decompressor {
     bytes memory finalData = new bytes(data.length * 8);
     uint48 latestUnique = 0;
 
-    uint8[8] memory divisors;
-    divisors[0] = 1;
-    divisors[1] = uint8(2) ** (1);
-    divisors[2] = uint8(2) ** (2);
-    divisors[3] = uint8(2) ** (3);
-    divisors[4] = uint8(2) ** (4);
-    divisors[5] = uint8(2) ** (5);
-    divisors[6] = uint8(2) ** (6);
-    divisors[7] = uint8(2) ** (7);
-
     // 1 bits per item
     // do an AND then shift
     for (uint48 x; x < data.length; x++) {
@@ -56,7 +46,7 @@ contract Decompressor {
       for (uint8 y; y < 8; y++) {
         // take the current bit and convert it to a uint8
         // use exponentiation to bit shift
-        uint8 thisVal = uint8(data[x] & bytes1(masks[y])) / divisors[y];
+        uint8 thisVal = uint8(data[x] & bytes1(masks[y])) / masks[y];
         // if non-zero add the unique value
         if (thisVal == 1) {
           finalData[8*x+y] = uniques[latestUnique++];
