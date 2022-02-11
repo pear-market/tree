@@ -34,7 +34,6 @@ contract Decompressor {
     masks[5] = 32;
     masks[6] = 64;
     masks[7] = 128;
-    // 0 is uniques, 1 is repeats
     bytes memory finalData = new bytes(data.length * 8);
     uint48 latestUnique = 0;
 
