@@ -7,8 +7,6 @@ import { AssetHolder } from "./AssetHolder.sol";
 import { OutcomeFormat } from "./Outcome.sol";
 import { IReceiver } from "./interfaces/IDecompressReceiver.sol";
 
-import "hardhat/console.sol";
-
 contract Adjudicator is BLSMove, AssetHolder, IReceiver {
 
   struct MultiConcludeWithdraw {
@@ -131,14 +129,8 @@ contract Adjudicator is BLSMove, AssetHolder, IReceiver {
 
   function callMethod(bytes memory data) external override {
     IReceiver.Data memory d = abi.decode(data, (IReceiver.Data));
-    console.log('asfasf');
     if (d.method == uint8(0)) {
       MultiConcludeWithdraw memory decoded = abi.decode(d.data, (MultiConcludeWithdraw));
-      console.log(decoded.singleParty);
-      console.log(decoded.fixedParts.length);
-      console.log(decoded.outcomeBytes.length);
-      console.log(decoded.signature[0]);
-      console.log(decoded.signature[1]);
       this.multiConcludeWithdrawSingleParty(
         decoded.singleParty,
         decoded.fixedParts,

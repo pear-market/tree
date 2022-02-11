@@ -205,6 +205,7 @@ function compress(counterparty, fixedParts, outcomeBytes, signature) {
     [compressFormat],
     [{ method: 0, data: functionData }]
   )
+  // console.log(calldata)
   // now compress it so it's compatible
   const rawData = calldata.replace('0x', '')
   // console.log(rawData)
@@ -213,9 +214,9 @@ function compress(counterparty, fixedParts, outcomeBytes, signature) {
   for (let x = 0; x < rawData.length / 2; x++) {
     const byte = rawData.slice(x * 2, x * 2 + 2)
     if (byte === '00') {
-      compressedBits.push('00')
+      compressedBits.push('0')
     } else {
-      compressedBits.push('10')
+      compressedBits.push('1')
       uniqueBytes.push(byte)
     }
   }

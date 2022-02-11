@@ -1,7 +1,7 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
+/* import "hardhat/console.sol"; */
 import { IReceiver } from "./interfaces/IDecompressReceiver.sol";
 
 contract Decompressor {
@@ -25,38 +25,45 @@ contract Decompressor {
     bytes calldata data,
     bytes calldata uniques
   ) public view returns (bytes memory) {
-    bytes32[2] memory repeats;
-    uint8[4] memory masks;
+    uint8[8] memory masks;
     // 11000000 = 3
     // 00110000 = 12
     // 00001100 = 48
     // 00000011 = 192
-    masks[0] = 3;
-    masks[1] = 12;
-    masks[2] = 48;
-    masks[3] = 192;
+    masks[0] = 1;
+    masks[1] = 2;
+    masks[2] = 4;
+    masks[3] = 8;
+    masks[4] = 16;
+    masks[5] = 32;
+    masks[6] = 64;
+    masks[7] = 128;
     // 0 is uniques, 1 is repeats
-    bytes memory finalData = new bytes(data.length * 4);
+    bytes memory finalData = new bytes(data.length * 8);
     uint48 latestUnique = 0;
 
     // 2 bits per item
     // do an AND then shift
-    uint8[4] memory divisors;
+    uint8[8] memory divisors;
     divisors[0] = 1;
-    divisors[1] = uint8(2) ** (1*2);
-    divisors[2] = uint8(2) ** (2*2);
-    divisors[3] = uint8(2) ** (3*2);
+    divisors[1] = uint8(2) ** (1);
+    divisors[2] = uint8(2) ** (2);
+    divisors[3] = uint8(2) ** (3);
+    divisors[4] = uint8(2) ** (4);
+    divisors[5] = uint8(2) ** (5);
+    divisors[6] = uint8(2) ** (6);
+    divisors[7] = uint8(2) ** (7);
     for (uint48 x; x < data.length; x++) {
       // all zeroes in this byte, skip it
       if (uint8(data[x]) == 0) continue;
-      for (uint8 y; y < 4; y++) {
+      for (uint8 y; y < 8; y++) {
         // take the current 2 bits and convert them to a uint8
         // use exponentiation to bit shift
         uint8 thisVal = uint8(data[x] & bytes1(masks[y])) / divisors[y];
         // if it's a 0 insert 8 zero bits
         // otherwise pull from the uniques or repeats array
         if (thisVal == 1) {
-          finalData[4*x+y] = uniques[latestUnique++];
+          finalData[8*x+y] = uniques[latestUnique++];
         }
       }
     }
