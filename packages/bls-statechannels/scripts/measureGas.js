@@ -67,7 +67,7 @@ function convertAddressToBytes32(address) {
   return ethers.utils.hexZeroPad(normalizedAddress, 32)
 }
 
-async function main(channelCount = 10) {
+async function main(channelCount = 5) {
   const { chainId } = await ethers.provider.getNetwork()
   const [user1] = await ethers.getSigners()
   const { blsMove, decompressor } = await getDeployedContracts()
@@ -207,6 +207,7 @@ function compress(counterparty, fixedParts, outcomeBytes, signature) {
   )
   // now compress it so it's compatible
   const rawData = calldata.replace('0x', '')
+  // console.log(rawData)
   const compressedBits = []
   const uniqueBytes = []
   for (let x = 0; x < rawData.length / 2; x++) {
